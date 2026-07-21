@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Artdriver — Haydovchi ilovasi (interaktiv maket)</title>
-<meta name="description" content="Artdriver haydovchi ilovasining interaktiv maketi: to'liq ekran xarita, smena statusi, chat va xarajatlar moduli.">
+<meta name="description" content="Artdriver haydovchi ilovasining interaktiv maketi: avtorizatsiya, to'liq ekran xarita, smena statusi, Telegram uslubidagi chat va xarajatlar moduli.">
 <style>
   :root{
     --bg:#08192b;
@@ -76,6 +76,36 @@
   .scroll{ flex:1; overflow-y:auto; padding:18px 18px 10px; }
   .section-label{ font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--steel-dim); margin:0 0 10px; }
 
+  /* ---- AUTH (phone + OTP) ---- */
+  .auth-brand{ display:flex; align-items:center; gap:8px; margin-bottom:24px; }
+  .auth-brand .mark{ width:30px; height:30px; border-radius:8px; background:var(--amber); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; color:#2a1c05; }
+  .auth-brand span{ font-size:12.5px; font-weight:700; letter-spacing:.04em; color:var(--steel); }
+  .auth-h{ margin:0 0 8px; font-size:21px; font-weight:800; letter-spacing:-.01em; }
+  .auth-sub{ margin:0 0 24px; font-size:13px; color:var(--steel); line-height:1.5; }
+  .auth-sub b{ color:var(--ice); }
+  .auth-field{
+    display:flex; align-items:center; gap:10px; background:var(--field); border:1.6px solid var(--field-border);
+    border-radius:14px; padding:0 16px; height:56px; margin-bottom:20px;
+  }
+  .auth-field .prefix{ font-size:17px; font-weight:800; color:var(--ice); padding-right:9px; border-right:1.6px solid var(--field-border); font-variant-numeric:tabular-nums; }
+  .auth-field input{ border:0; background:transparent; outline:0; color:var(--ice); font-size:17px; font-weight:700; letter-spacing:.02em; font-variant-numeric:tabular-nums; width:100%; font-family:inherit; }
+  .auth-field input::placeholder{ color:var(--steel-dim); font-weight:600; }
+  .auth-legal{ margin-top:14px; font-size:11px; line-height:1.5; color:var(--steel-dim); text-align:center; }
+  .auth-legal u{ color:var(--steel); text-decoration:underline; text-underline-offset:2px; }
+  .auth-top{ display:flex; align-items:center; gap:10px; margin-bottom:18px; }
+
+  .otp-row{ position:relative; display:flex; gap:8px; margin-bottom:16px; }
+  .otp-box{
+    flex:1; height:54px; border-radius:12px; background:var(--field); border:1.6px solid var(--field-border);
+    display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:800;
+    font-variant-numeric:tabular-nums; color:var(--steel-dim);
+  }
+  .otp-box.filled{ border-color:var(--amber); color:var(--ice); }
+  .otp-hidden-input{ position:absolute; inset:0; opacity:0; border:0; padding:0; margin:0; font-size:16px; width:100%; height:100%; }
+  .auth-resend{ display:flex; align-items:center; justify-content:space-between; font-size:12.5px; margin-bottom:22px; }
+  .auth-resend .muted{ color:var(--steel-dim); }
+  .auth-resend .timer{ color:var(--steel); font-weight:700; font-variant-numeric:tabular-nums; }
+
   /* ---- HOME: full-bleed map ---- */
   .map-stage{ position:relative; flex:1; overflow:hidden; }
   .map-svg{ position:absolute; inset:0; width:100%; height:100%; display:block; }
@@ -129,10 +159,32 @@
     100%{ opacity:0; transform:scale(2.6); }
   }
 
-  /* ---- CHAT ---- */
+  /* ---- CHAT (Telegram-style contacts + thread) ---- */
+  .chat-view{ display:none; flex-direction:column; height:100%; }
+  .chat-view.active{ display:flex; }
   .chat-head{ padding:16px 18px 12px; border-bottom:1px solid var(--divider); flex:0 0 auto; }
   .chat-head h3{ margin:0 0 2px; font-size:15.5px; font-weight:800; }
   .chat-head p{ margin:0; font-size:11.5px; color:var(--steel-dim); }
+
+  .contact-list{ display:flex; flex-direction:column; gap:8px; }
+  .contact-item{
+    display:flex; align-items:center; gap:11px; background:var(--panel-2); border:1px solid var(--divider);
+    border-radius:13px; padding:11px 12px; cursor:pointer; text-align:left; width:100%; color:var(--ice); font-family:inherit;
+  }
+  .contact-avatar{ width:42px; height:42px; border-radius:50%; background:var(--field); border:1px solid var(--field-border); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; flex:0 0 auto; }
+  .contact-body{ flex:1; min-width:0; }
+  .contact-name{ font-size:13.5px; font-weight:800; }
+  .contact-role{ font-size:10.5px; color:var(--steel-dim); margin-top:1px; }
+  .contact-preview{ font-size:11.5px; color:var(--steel); margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .contact-meta{ display:flex; flex-direction:column; align-items:flex-end; gap:6px; flex:0 0 auto; }
+  .contact-time{ font-size:10px; color:var(--steel-dim); }
+  .contact-badge{ background:var(--amber); color:#2a1c05; font-size:10px; font-weight:800; border-radius:20px; min-width:16px; height:16px; display:flex; align-items:center; justify-content:center; padding:0 4px; }
+
+  .thread-head{ display:flex; align-items:center; justify-content:space-between; padding:14px; border-bottom:1px solid var(--divider); flex:0 0 auto; gap:10px; }
+  .thread-who{ text-align:center; flex:1; min-width:0; }
+  .thread-name{ font-size:14px; font-weight:800; }
+  .thread-role{ font-size:11px; color:var(--steel-dim); margin-top:1px; }
+
   .chat-list{ flex:1; overflow-y:auto; padding:14px 16px; display:flex; flex-direction:column; gap:10px; }
   .msg{ display:flex; flex-direction:column; max-width:78%; }
   .msg.recv{ align-self:flex-start; align-items:flex-start; }
@@ -141,14 +193,7 @@
   .msg.recv .bubble{ background:var(--field); border:1px solid var(--field-border); border-bottom-left-radius:4px; }
   .msg.sent .bubble{ background:var(--amber); color:#2a1c05; font-weight:600; border-bottom-right-radius:4px; }
   .msg .time{ font-size:9.5px; color:var(--steel-dim); margin-top:3px; padding:0 2px; }
-
-  .req-card{
-    align-self:flex-start; max-width:86%; background:var(--panel-2); border:1px solid var(--amber);
-    border-radius:14px; padding:12px 13px; display:flex; flex-direction:column; gap:8px;
-  }
-  .req-card .tag{ font-size:9.5px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--amber); }
-  .req-card p{ margin:0; font-size:12.5px; line-height:1.4; }
-  .req-card button{ align-self:flex-start; border:0; background:var(--amber); color:#2a1c05; font-size:11.5px; font-weight:800; padding:7px 12px; border-radius:9px; cursor:pointer; }
+  .chat-empty{ margin:auto; font-size:12.5px; color:var(--steel-dim); text-align:center; }
 
   .chat-input{ flex:0 0 auto; display:flex; gap:8px; padding:12px 14px; border-top:1px solid var(--divider); }
   .chat-input input{
@@ -287,43 +332,48 @@
     font-size:14.5px; font-weight:800; display:flex; align-items:center; justify-content:center; cursor:pointer;
   }
   .cta:disabled{ background:var(--field); color:var(--steel-dim); cursor:not-allowed; }
+  .inline-cta{ height:44px; font-size:13px; margin-top:2px; }
 
   .exp-hint{ font-size:11px; color:var(--steel-dim); text-align:center; margin-top:10px; }
 
-  /* ---- Pauza / Off sabab varag'i ---- */
+  /* ---- Pauza / Off sabab varag'i (accordion) ---- */
   .sheet-backdrop{
     display:none; position:absolute; inset:0; z-index:10;
     background:#050d16cc; align-items:flex-end;
   }
   .sheet-backdrop.open{ display:flex; }
   .sheet{
-    width:100%; background:var(--panel); border-top:1px solid var(--divider);
+    width:100%; max-height:86%; overflow-y:auto; background:var(--panel); border-top:1px solid var(--divider);
     border-radius:20px 20px 0 0; padding:18px 18px 22px; display:flex; flex-direction:column; gap:12px;
   }
   .sheet-head{ display:flex; align-items:center; justify-content:space-between; }
   .sheet-head h3{ margin:0; font-size:15px; font-weight:800; }
   .sheet-close{ width:28px; height:28px; border-radius:50%; border:0; background:var(--field); color:var(--ice); font-size:12px; cursor:pointer; }
   .reason-list{ display:flex; flex-direction:column; gap:8px; }
+  .reason-item{ display:flex; flex-direction:column; gap:0; }
   .reason-pill{
     display:flex; align-items:center; gap:10px; padding:11px 13px; border-radius:12px;
     border:1.6px solid var(--field-border); background:var(--field); color:var(--ice);
-    font-size:13px; font-weight:600; cursor:pointer; text-align:left; font-family:inherit;
+    font-size:13px; font-weight:600; cursor:pointer; text-align:left; font-family:inherit; width:100%;
   }
   .reason-pill .radio{ width:16px; height:16px; border-radius:50%; border:1.6px solid var(--steel-dim); flex:0 0 auto; position:relative; }
   .reason-pill.selected{ border-color:var(--amber); background:#f2a93c1a; }
   .reason-pill.selected .radio{ border-color:var(--amber); }
   .reason-pill.selected .radio::after{ content:""; position:absolute; inset:3px; border-radius:50%; background:var(--amber); }
 
+  .reason-extra{ display:none; padding:10px 4px 2px 4px; flex-direction:column; gap:8px; }
+  .expense-note{ margin:0; font-size:12px; color:var(--steel); line-height:1.4; }
+
   .duration-picker{ display:flex; flex-direction:column; gap:8px; }
   .duration-chip{
     display:flex; align-items:center; justify-content:space-between; padding:11px 13px; border-radius:12px;
-    border:1.6px solid var(--field-border); background:var(--field); color:var(--ice);
+    border:1.6px solid var(--field-border); background:var(--panel-2); color:var(--ice);
     font-size:13px; font-weight:700; cursor:pointer; font-family:inherit;
   }
   .duration-chip .dur{ font-size:11px; color:var(--steel-dim); font-weight:700; font-variant-numeric:tabular-nums; }
   .duration-chip.selected{ border-color:var(--amber); background:#f2a93c1a; }
   .duration-chip.selected .dur{ color:var(--amber); }
-  .deadline-line{ font-size:12.5px; color:var(--steel); text-align:center; padding:10px 0 2px; }
+  .deadline-line{ display:none; font-size:12.5px; color:var(--steel); text-align:center; padding:2px 0 2px; }
   .deadline-line b{ color:var(--amber); font-variant-numeric:tabular-nums; }
 </style>
 </head>
@@ -331,10 +381,10 @@
 
 <div class="eyebrow">Artdriver · Haydovchi ilovasi · Interaktiv maket</div>
 <div class="heading">
-  <h1>Bosh sahifa: to‘liq xarita + status paneli</h1>
-  <p>Xarita butun ekranni egallaydi, pastda 4 bo‘limli menyu turadi. O‘ng tomonda — Boshlash / Pauza / To‘xtatish holat tugmalari, ular Fleet-panelida rahbariyatga real vaqtda ko‘rinadi.</p>
+  <h1>Kirishdan bosh sahifagacha — to‘liq oqim</h1>
+  <p>Ilova avtorizatsiyadan boshlanadi: telefon → OTP → so‘ng haydovchi o‘z sahifasiga o‘tadi. Pauza/Off sabablari endi tanlangan variant ostida ochiladi, chat esa hamkasblar ro‘yxati bilan Telegram uslubida ishlaydi.</p>
 </div>
-<p class="hint">👉 O‘ngdagi <b>status panelini</b> bosing — pastdagi «Fleet-panelda ko‘rinishi» kartasi darhol yangilanadi. Pastki menyu va chat ham ishlaydi.</p>
+<p class="hint">👉 Avval telefon raqamini kiriting va <b>«Davom etish»</b>ni bosing, keyin istalgan 6 xonali kodni yozing — ilova avtomatik login qiladi va bosh sahifaga o‘tadi.</p>
 
 <div class="layout">
 
@@ -352,8 +402,54 @@
 
       <div class="screens">
 
+        <!-- ===== AUTH: phone ===== -->
+        <div class="screen active" id="screen-auth-phone">
+          <div class="scroll">
+            <div class="auth-brand"><span class="mark">A</span><span>ARTDRIVER · HAYDOVCHI</span></div>
+            <h2 class="auth-h">Xush kelibsiz</h2>
+            <p class="auth-sub">Ishni boshlash uchun telefon raqamingizni kiriting.</p>
+
+            <label class="field-label">Telefon raqami</label>
+            <div class="auth-field">
+              <span class="prefix">+998</span>
+              <input type="tel" id="authPhoneInput" placeholder="90 123 45 67" inputmode="numeric" oninput="onAuthPhoneInput()">
+            </div>
+
+            <button type="button" class="cta" id="authPhoneBtn" onclick="goToOtp()" disabled>Davom etish</button>
+            <p class="auth-legal">Davom etish orqali siz Foydalanish shartlariga rozilik bildirasiz.</p>
+          </div>
+        </div>
+
+        <!-- ===== AUTH: OTP ===== -->
+        <div class="screen" id="screen-auth-otp">
+          <div class="scroll">
+            <div class="auth-top">
+              <button type="button" class="back-btn" onclick="showScreen('auth-phone')" aria-label="Orqaga">←</button>
+            </div>
+            <h2 class="auth-h">Tasdiqlash kodi</h2>
+            <p class="auth-sub"><b>+998 <span id="otpPhoneDisplay">90 123 45 67</span></b> raqamiga yuborilgan 6 xonali kodni kiriting.</p>
+
+            <div class="otp-row">
+              <div class="otp-box" id="otpBox0">–</div>
+              <div class="otp-box" id="otpBox1">–</div>
+              <div class="otp-box" id="otpBox2">–</div>
+              <div class="otp-box" id="otpBox3">–</div>
+              <div class="otp-box" id="otpBox4">–</div>
+              <div class="otp-box" id="otpBox5">–</div>
+              <input type="tel" inputmode="numeric" maxlength="6" class="otp-hidden-input" id="otpInput" oninput="renderOtp()" autocomplete="one-time-code" aria-label="Tasdiqlash kodi">
+            </div>
+
+            <div class="auth-resend">
+              <span class="muted">Kod kelmadimi?</span>
+              <span class="timer">0:47 dan keyin qayta yuborish</span>
+            </div>
+
+            <button type="button" class="cta" id="otpConfirmBtn" onclick="completeAuth()" disabled>Tasdiqlash</button>
+          </div>
+        </div>
+
         <!-- ===== HOME (full map) ===== -->
-        <div class="screen active" id="screen-home">
+        <div class="screen" id="screen-home">
           <div class="map-stage nav-mode" id="mapStage">
             <svg class="map-svg" viewBox="0 0 300 520" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
               <rect width="300" height="520" fill="#0a2338"/>
@@ -419,51 +515,42 @@
                 <button type="button" class="sheet-close" onclick="closeReasonSheet()" aria-label="Yopish">✕</button>
               </div>
               <div class="reason-list" id="reasonList"></div>
-
-              <div class="extra-block" id="durationBlock" style="display:none">
-                <div class="duration-picker" id="durationPicker"></div>
-                <div class="deadline-line" id="deadlineLine" style="display:none">⏱ Tugash vaqti: <b id="deadlineTime"></b></div>
-              </div>
-
-              <textarea id="reasonOther" class="expense-textarea" rows="2" placeholder="Sababni yozing…" style="display:none" oninput="onReasonOtherInput()"></textarea>
-
-              <button type="button" class="cta" id="expenseCTA" style="display:none" onclick="confirmExpenseReason()">🧾 Xarajat qo‘shish</button>
               <button type="button" class="cta" id="reasonConfirm" onclick="confirmReason()" disabled>Tasdiqlash</button>
             </div>
           </div>
         </div>
 
-        <!-- ===== CHAT ===== -->
+        <!-- ===== CHAT (Telegram-style) ===== -->
         <div class="screen" id="screen-chat">
-          <div class="chat-head">
-            <h3>Rahbariyat bilan chat</h3>
-            <p>Dispetcher · Nodira Yusupova</p>
-          </div>
-          <div class="chat-list" id="chatList">
-            <div class="msg recv">
-              <div class="bubble">Assalomu alaykum! Samarqanddagi yuk tayyor, 14:00 gacha yetib borishga harakat qiling.</div>
-              <div class="time">10:12</div>
+
+          <div class="chat-view active" id="chatContactsView">
+            <div class="chat-head">
+              <h3>Xabarlar</h3>
+              <p>Hamkasblar va rahbariyat</p>
             </div>
-            <div class="msg sent">
-              <div class="bubble">Xo‘p bo‘ladi, hozir yo‘ldaman.</div>
-              <div class="time">10:14</div>
-            </div>
-            <div class="req-card">
-              <span class="tag">So‘rov · Rahbariyatdan</span>
-              <p>Iltimos, o‘tgan reys uchun yoqilg‘i chekini yuklab qo‘ying.</p>
-              <button type="button" onclick="goToAddExpense('Yoqilg‘i cheki')">📷 Xarajat qo‘shish</button>
-            </div>
-            <div class="msg recv">
-              <div class="bubble">Yo‘lda muammo bo‘lsa, shu yerga yozing.</div>
-              <div class="time">10:15</div>
+            <div class="scroll">
+              <div class="contact-list" id="contactList"></div>
             </div>
           </div>
-          <div class="chat-input">
-            <input type="text" id="chatInput" placeholder="Xabar yozing…" onkeydown="if(event.key==='Enter')sendMessage()">
-            <button type="button" onclick="sendMessage()" aria-label="Yuborish">
-              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>
-            </button>
+
+          <div class="chat-view" id="chatThreadView">
+            <div class="thread-head">
+              <button type="button" class="back-btn" onclick="showChatView('contacts')" aria-label="Orqaga">←</button>
+              <div class="thread-who">
+                <div class="thread-name" id="threadName">—</div>
+                <div class="thread-role" id="threadRole">—</div>
+              </div>
+              <span style="width:34px"></span>
+            </div>
+            <div class="chat-list" id="chatList"></div>
+            <div class="chat-input">
+              <input type="text" id="chatInput" placeholder="Xabar yozing…" onkeydown="if(event.key==='Enter')sendMessage()">
+              <button type="button" onclick="sendMessage()" aria-label="Yuborish">
+                <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>
+              </button>
+            </div>
           </div>
+
         </div>
 
         <!-- ===== REPORT ===== -->
@@ -577,7 +664,7 @@
 
       </div>
 
-      <div class="tabbar">
+      <div class="tabbar" id="tabbar" style="display:none">
         <button type="button" class="tab active" data-tab="home" onclick="showScreen('home')">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>
           <span>Bosh sahifa</span>
@@ -614,11 +701,12 @@
 
 </div>
 
-<p class="caption">Full-screen xarita — Yandex Pro va Uber Driver’dagi kabi asosiy sirtni egallaydi; ustidagi status paneli va pastki menyu esa doim ko‘rinib turadi. «Xarajatlar» — Hisobot ichidan ochiladigan alohida modul: avval tarix ko‘rinadi, yangi yozuv esa surat + tavsif bilan qo‘shiladi va saqlangandan so‘ng o‘zgartirib bo‘lmaydi.</p>
+<p class="caption">Ilova avtorizatsiyadan boshlanadi (telefon → OTP), so‘ng haydovchi Bosh sahifaga tushadi. Pauza/Off sabablari endi ro‘yxatdagi tanlangan variant ostida ochiladi. «Chat» — hamkasblar ro‘yxati bilan Telegram uslubidagi suhbat: birortasini tanlab, real xabar yozib jo‘natish mumkin.</p>
 
 <input type="file" id="receiptInput" accept="image/*" capture="environment" style="display:none" onchange="handleReceiptPhoto(event)">
 
 <script>
+  /* ===== navigation ===== */
   function showScreen(id, tabId){
     tabId = tabId || id;
     document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
@@ -627,23 +715,39 @@
     var tabBtn = document.querySelector('.tab[data-tab="'+tabId+'"]');
     if(tabBtn) tabBtn.classList.add('active');
     if(id === 'expenses') showExpenseView('list');
+    if(id === 'chat') showChatView('contacts');
   }
 
-  function showExpenseView(view){
-    document.querySelectorAll('.exp-view').forEach(function(v){ v.classList.remove('active'); });
-    document.getElementById(view === 'add' ? 'expenseAddView' : 'expenseListView').classList.add('active');
+  /* ===== AUTH ===== */
+  function onAuthPhoneInput(){
+    var val = document.getElementById('authPhoneInput').value.trim();
+    document.getElementById('authPhoneBtn').disabled = !val;
   }
 
-  function goToAddExpense(prefill){
-    showScreen('expenses', 'report');
-    showExpenseView('add');
-    if(prefill){
-      var d = document.getElementById('expenseDesc');
-      d.value = prefill;
-      updateSaveState();
+  function goToOtp(){
+    var phone = document.getElementById('authPhoneInput').value.trim();
+    document.getElementById('otpPhoneDisplay').textContent = phone || '90 123 45 67';
+    showScreen('auth-otp');
+  }
+
+  function renderOtp(){
+    var val = document.getElementById('otpInput').value.replace(/\D/g,'').slice(0,6);
+    for(var i=0;i<6;i++){
+      var box = document.getElementById('otpBox'+i);
+      var d = val[i];
+      box.textContent = d || '–';
+      box.classList.toggle('filled', !!d);
     }
+    document.getElementById('otpConfirmBtn').disabled = val.length !== 6;
   }
 
+  function completeAuth(){
+    if(document.getElementById('otpConfirmBtn').disabled) return;
+    document.getElementById('tabbar').style.display = 'flex';
+    showScreen('home');
+  }
+
+  /* ===== HOME status rail ===== */
   var STATUS_META = {
     start: { text:'Faol · yo‘lda', badge:'ok' },
     pause: { text:'Pauzada',       badge:'warn' },
@@ -675,6 +779,7 @@
   var selectedReasonLabel = null;
   var selectedReasonType = null;
   var selectedDeadlineText = null;
+  var currentExtraEl = null;
 
   function applyDriverStatus(state, reason){
     document.querySelectorAll('.rail-btn').forEach(function(b){
@@ -700,11 +805,18 @@
 
   function openReasonSheet(state){
     pendingReasonState = state;
+    selectedReasonLabel = null;
+    selectedReasonType = null;
+    selectedDeadlineText = null;
+    currentExtraEl = null;
     document.getElementById('sheetTitle').textContent = state === 'pause' ? 'Nega pauza qilyapsiz?' : 'To‘xtatish sababi';
 
     var list = document.getElementById('reasonList');
     list.innerHTML = '';
     REASON_CONFIG[state].forEach(function(cfg){
+      var item = document.createElement('div');
+      item.className = 'reason-item';
+
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'reason-pill';
@@ -714,58 +826,76 @@
       label.textContent = cfg.label;
       btn.appendChild(radio);
       btn.appendChild(label);
-      btn.onclick = function(){ selectReason(cfg, btn); };
-      list.appendChild(btn);
+
+      var extra = document.createElement('div');
+      extra.className = 'reason-extra';
+
+      btn.onclick = function(){ selectReason(cfg, item, extra); };
+
+      item.appendChild(btn);
+      item.appendChild(extra);
+      list.appendChild(item);
     });
 
-    resetSheetExtras();
+    document.getElementById('reasonConfirm').style.display = 'flex';
+    document.getElementById('reasonConfirm').disabled = true;
     document.getElementById('sheetBackdrop').classList.add('open');
   }
 
-  function resetSheetExtras(){
-    selectedReasonLabel = null;
-    selectedReasonType = null;
-    selectedDeadlineText = null;
-    document.getElementById('durationBlock').style.display = 'none';
-    document.getElementById('deadlineLine').style.display = 'none';
-    var other = document.getElementById('reasonOther');
-    other.style.display = 'none';
-    other.value = '';
-    document.getElementById('expenseCTA').style.display = 'none';
-    document.getElementById('reasonConfirm').style.display = 'flex';
-    document.getElementById('reasonConfirm').disabled = true;
-  }
+  function selectReason(cfg, item, extra){
+    document.querySelectorAll('.reason-item').forEach(function(it){
+      it.querySelector('.reason-pill').classList.remove('selected');
+      var ex = it.querySelector('.reason-extra');
+      ex.style.display = 'none';
+      ex.innerHTML = '';
+    });
+    item.querySelector('.reason-pill').classList.add('selected');
 
-  function selectReason(cfg, btn){
-    document.querySelectorAll('.reason-pill').forEach(function(p){ p.classList.remove('selected'); });
-    btn.classList.add('selected');
     selectedReasonLabel = cfg.label;
     selectedReasonType = cfg.type;
     selectedDeadlineText = null;
+    currentExtraEl = extra;
 
-    document.getElementById('durationBlock').style.display = 'none';
-    document.getElementById('deadlineLine').style.display = 'none';
-    document.getElementById('reasonOther').style.display = 'none';
-    document.getElementById('expenseCTA').style.display = 'none';
     document.getElementById('reasonConfirm').style.display = 'flex';
     document.getElementById('reasonConfirm').disabled = true;
 
     if(cfg.type === 'rest' || cfg.type === 'meal'){
-      renderDurationPicker(cfg.type);
-      document.getElementById('durationBlock').style.display = 'block';
+      extra.style.display = 'flex';
+      buildDurationPickerInto(extra, cfg.type);
     } else if(cfg.type === 'text'){
-      document.getElementById('reasonOther').style.display = 'block';
+      extra.style.display = 'flex';
+      var ta = document.createElement('textarea');
+      ta.className = 'expense-textarea';
+      ta.style.marginBottom = '0';
+      ta.rows = 2;
+      ta.placeholder = 'Sababni yozing…';
+      ta.oninput = function(){ document.getElementById('reasonConfirm').disabled = !ta.value.trim(); };
+      extra.appendChild(ta);
     } else if(cfg.type === 'expense'){
+      extra.style.display = 'flex';
       document.getElementById('reasonConfirm').style.display = 'none';
-      document.getElementById('expenseCTA').style.display = 'flex';
+      var note = document.createElement('p');
+      note.className = 'expense-note';
+      note.textContent = 'Yoqilg‘i cheki xarajat sifatida saqlanadi.';
+      var goBtn = document.createElement('button');
+      goBtn.type = 'button';
+      goBtn.className = 'cta inline-cta';
+      goBtn.textContent = '🧾 Xarajat qo‘shish';
+      goBtn.onclick = confirmExpenseReason;
+      extra.appendChild(note);
+      extra.appendChild(goBtn);
     } else {
       document.getElementById('reasonConfirm').disabled = false;
     }
   }
 
-  function renderDurationPicker(type){
-    var picker = document.getElementById('durationPicker');
-    picker.innerHTML = '';
+  function buildDurationPickerInto(container, type){
+    var picker = document.createElement('div');
+    picker.className = 'duration-picker';
+    var deadlineLine = document.createElement('div');
+    deadlineLine.className = 'deadline-line';
+    deadlineLine.innerHTML = '⏱ Tugash vaqti: <b class="dl-time"></b>';
+
     DURATION_OPTIONS[type].forEach(function(opt){
       var chip = document.createElement('button');
       chip.type = 'button';
@@ -777,28 +907,26 @@
       dur.textContent = opt.minutes >= 60 ? (opt.minutes/60) + ' soat' : opt.minutes + ' daqiqa';
       chip.appendChild(label);
       chip.appendChild(dur);
-      chip.onclick = function(){ selectDuration(opt, chip); };
+      chip.onclick = function(){ selectDuration(opt, chip, picker, deadlineLine); };
       picker.appendChild(chip);
     });
+
+    container.appendChild(picker);
+    container.appendChild(deadlineLine);
   }
 
-  function selectDuration(opt, chip){
-    document.querySelectorAll('.duration-chip').forEach(function(c){ c.classList.remove('selected'); });
+  function selectDuration(opt, chip, picker, deadlineLine){
+    picker.querySelectorAll('.duration-chip').forEach(function(c){ c.classList.remove('selected'); });
     chip.classList.add('selected');
 
     var deadline = new Date(Date.now() + opt.minutes * 60000);
     var hh = String(deadline.getHours()).padStart(2,'0');
     var mm = String(deadline.getMinutes()).padStart(2,'0');
     selectedDeadlineText = hh + ':' + mm;
-    document.getElementById('deadlineTime').textContent = selectedDeadlineText;
-    document.getElementById('deadlineLine').style.display = 'block';
+    deadlineLine.querySelector('.dl-time').textContent = selectedDeadlineText;
+    deadlineLine.style.display = 'block';
 
     document.getElementById('reasonConfirm').disabled = false;
-  }
-
-  function onReasonOtherInput(){
-    var val = document.getElementById('reasonOther').value.trim();
-    document.getElementById('reasonConfirm').disabled = !val;
   }
 
   function closeReasonSheet(){
@@ -808,7 +936,7 @@
 
   function buildReasonText(){
     if(selectedReasonType === 'text'){
-      var note = document.getElementById('reasonOther').value.trim();
+      var note = currentExtraEl ? currentExtraEl.querySelector('textarea').value.trim() : '';
       return selectedReasonLabel === 'Boshqa' ? note : (selectedReasonLabel + ': ' + note);
     }
     if((selectedReasonType === 'rest' || selectedReasonType === 'meal') && selectedDeadlineText){
@@ -829,6 +957,22 @@
     applyDriverStatus(pendingReasonState, 'Yoqilg‘i quyish');
     document.getElementById('sheetBackdrop').classList.remove('open');
     goToAddExpense('Yoqilg‘i quyish');
+  }
+
+  /* ===== EXPENSES module ===== */
+  function showExpenseView(view){
+    document.querySelectorAll('.exp-view').forEach(function(v){ v.classList.remove('active'); });
+    document.getElementById(view === 'add' ? 'expenseAddView' : 'expenseListView').classList.add('active');
+  }
+
+  function goToAddExpense(prefill){
+    showScreen('expenses', 'report');
+    showExpenseView('add');
+    if(prefill){
+      var d = document.getElementById('expenseDesc');
+      d.value = prefill;
+      updateSaveState();
+    }
   }
 
   var pendingExpensePhoto = null;
@@ -903,22 +1047,137 @@
     showExpenseView('list');
   }
 
+  /* ===== CHAT (Telegram-style) ===== */
+  var CONTACTS = [
+    { id:'nodira', name:'Nodira Yusupova', role:'Dispetcher', unread:0, messages:[
+      { from:'recv', text:'Assalomu alaykum! Samarqanddagi yuk tayyor, 14:00 gacha yetib borishga harakat qiling.', time:'10:12' },
+      { from:'sent', text:'Xo‘p bo‘ladi, hozir yo‘ldaman.', time:'10:14' },
+      { from:'recv', text:'Yo‘lda muammo bo‘lsa, shu yerga yozing.', time:'10:15' }
+    ]},
+    { id:'umid', name:'Umid Nazarov', role:'Menejer', unread:1, messages:[
+      { from:'recv', text:'Assalomu alaykum. Iltimos, o‘tgan reys uchun yoqilg‘i chekini yuklab qo‘ying.', time:'09:20' }
+    ]},
+    { id:'sardor', name:'Sardor Aliyev', role:'Haydovchi', unread:1, messages:[
+      { from:'recv', text:'Salom! Siz ham shu marshrutdamisiz?', time:'Kecha' }
+    ]},
+    { id:'bekzod', name:'Bekzod Rahimov', role:'Mexanik', unread:0, messages:[
+      { from:'recv', text:'TO vaqti keldi, servisga kirib o‘ting.', time:'2 kun oldin' }
+    ]}
+  ];
+  var currentContactId = null;
+
+  function initials(name){
+    return name.split(' ').map(function(w){ return w[0]; }).join('').slice(0,2).toUpperCase();
+  }
+
+  function renderContactList(){
+    var list = document.getElementById('contactList');
+    list.innerHTML = '';
+    CONTACTS.forEach(function(c){
+      var last = c.messages[c.messages.length - 1];
+      var item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'contact-item';
+      item.onclick = function(){ openThread(c.id); };
+
+      var av = document.createElement('div');
+      av.className = 'contact-avatar';
+      av.textContent = initials(c.name);
+
+      var body = document.createElement('div');
+      body.className = 'contact-body';
+      var name = document.createElement('div');
+      name.className = 'contact-name';
+      name.textContent = c.name;
+      var role = document.createElement('div');
+      role.className = 'contact-role';
+      role.textContent = c.role;
+      var preview = document.createElement('div');
+      preview.className = 'contact-preview';
+      preview.textContent = last ? last.text : 'Suhbat yo‘q';
+      body.appendChild(name);
+      body.appendChild(role);
+      body.appendChild(preview);
+
+      var meta = document.createElement('div');
+      meta.className = 'contact-meta';
+      var time = document.createElement('div');
+      time.className = 'contact-time';
+      time.textContent = last ? last.time : '';
+      meta.appendChild(time);
+      if(c.unread > 0){
+        var badge = document.createElement('div');
+        badge.className = 'contact-badge';
+        badge.textContent = c.unread;
+        meta.appendChild(badge);
+      }
+
+      item.appendChild(av);
+      item.appendChild(body);
+      item.appendChild(meta);
+      list.appendChild(item);
+    });
+  }
+
+  function showChatView(view){
+    document.querySelectorAll('.chat-view').forEach(function(v){ v.classList.remove('active'); });
+    document.getElementById(view === 'thread' ? 'chatThreadView' : 'chatContactsView').classList.add('active');
+    if(view === 'contacts') renderContactList();
+  }
+
+  function openThread(id){
+    currentContactId = id;
+    var c = CONTACTS.find(function(x){ return x.id === id; });
+    c.unread = 0;
+    document.getElementById('threadName').textContent = c.name;
+    document.getElementById('threadRole').textContent = c.role;
+    renderThreadMessages(c);
+    showChatView('thread');
+  }
+
+  function renderThreadMessages(c){
+    var list = document.getElementById('chatList');
+    list.innerHTML = '';
+    if(!c.messages.length){
+      var empty = document.createElement('div');
+      empty.className = 'chat-empty';
+      empty.textContent = 'Suhbatni boshlang';
+      list.appendChild(empty);
+      return;
+    }
+    c.messages.forEach(function(m){
+      list.appendChild(buildMessageEl(m));
+    });
+    list.scrollTop = list.scrollHeight;
+  }
+
+  function buildMessageEl(m){
+    var wrap = document.createElement('div');
+    wrap.className = 'msg ' + m.from;
+    var bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.textContent = m.text;
+    var time = document.createElement('div');
+    time.className = 'time';
+    time.textContent = m.time;
+    wrap.appendChild(bubble);
+    wrap.appendChild(time);
+    return wrap;
+  }
+
   function sendMessage(){
+    if(!currentContactId) return;
     var input = document.getElementById('chatInput');
     var text = input.value.trim();
     if(!text) return;
+    var c = CONTACTS.find(function(x){ return x.id === currentContactId; });
+    var msg = { from:'sent', text:text, time:'Hozir' };
+    c.messages.push(msg);
+
     var list = document.getElementById('chatList');
-    var wrap = document.createElement('div');
-    wrap.className = 'msg sent';
-    var bubble = document.createElement('div');
-    bubble.className = 'bubble';
-    bubble.textContent = text;
-    var time = document.createElement('div');
-    time.className = 'time';
-    time.textContent = 'Hozir';
-    wrap.appendChild(bubble);
-    wrap.appendChild(time);
-    list.appendChild(wrap);
+    var empty = list.querySelector('.chat-empty');
+    if(empty) empty.remove();
+    list.appendChild(buildMessageEl(msg));
     list.scrollTop = list.scrollHeight;
     input.value = '';
   }
