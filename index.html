@@ -433,7 +433,7 @@
   <h1>Kirishdan bosh sahifagacha — to‘liq oqim</h1>
   <p>Ilova avtorizatsiyadan boshlanadi: telefon → OTP → so‘ng haydovchi o‘z sahifasiga o‘tadi. Pauza/Off sabablari endi tanlangan variant ostida ochiladi, chat esa hamkasblar ro‘yxati bilan Telegram uslubida ishlaydi.</p>
 </div>
-<p class="hint">👉 Avval telefon raqamini kiriting va <b>«Davom etish»</b>ni bosing, keyin istalgan 6 xonali kodni yozing — ilova avtomatik login qiladi va bosh sahifaga o‘tadi.</p>
+<p class="hint">👉 Avval telefon raqamini kiriting va <b>«Davom etish»</b>ni bosing, keyin istalgan 4 xonali kodni yozing — ilova avtomatik login qiladi va bosh sahifaga o‘tadi.</p>
 
 <div class="layout">
 
@@ -476,16 +476,14 @@
               <button type="button" class="back-btn" onclick="showScreen('auth-phone')" aria-label="Orqaga">←</button>
             </div>
             <h2 class="auth-h">Tasdiqlash kodi</h2>
-            <p class="auth-sub"><b>+998 <span id="otpPhoneDisplay">90 123 45 67</span></b> raqamiga yuborilgan 6 xonali kodni kiriting.</p>
+            <p class="auth-sub"><b>+998 <span id="otpPhoneDisplay">90 123 45 67</span></b> raqamiga yuborilgan 4 xonali kodni kiriting.</p>
 
             <div class="otp-row">
               <div class="otp-box" id="otpBox0">–</div>
               <div class="otp-box" id="otpBox1">–</div>
               <div class="otp-box" id="otpBox2">–</div>
               <div class="otp-box" id="otpBox3">–</div>
-              <div class="otp-box" id="otpBox4">–</div>
-              <div class="otp-box" id="otpBox5">–</div>
-              <input type="tel" inputmode="numeric" maxlength="6" class="otp-hidden-input" id="otpInput" oninput="renderOtp()" autocomplete="one-time-code" aria-label="Tasdiqlash kodi">
+              <input type="tel" inputmode="numeric" maxlength="4" class="otp-hidden-input" id="otpInput" oninput="renderOtp()" autocomplete="one-time-code" aria-label="Tasdiqlash kodi">
             </div>
 
             <div class="auth-resend">
@@ -515,11 +513,23 @@
                 <line x1="260" y1="10" x2="260" y2="510"/>
               </g>
               <polyline points="48,478 108,382 92,300 188,262 168,150 246,96" fill="none" stroke="#a9bbcb" stroke-width="3" stroke-dasharray="1 8" stroke-linecap="round"/>
-              <circle cx="48" cy="478" r="5" fill="#6f8aa3"/>
+
+              <!-- Point A: departure -->
+              <circle cx="48" cy="478" r="12" fill="#0e2c47" stroke="#f3f6f9" stroke-width="2.2"/>
+              <text x="48" y="483" text-anchor="middle" font-size="12" font-weight="800" font-family="-apple-system,Segoe UI,sans-serif" fill="#f3f6f9">A</text>
+
+              <!-- Point B: destination -->
               <path d="M246 96c0-9-7-16-16-16s-16 7-16 16c0 12 16 25 16 25s16-13 16-25z" fill="#f2a93c"/>
-              <circle cx="230" cy="95" r="4.5" fill="#0a2338"/>
-              <circle class="pulse-dot" cx="168" cy="150" r="11" fill="#f2a93c" opacity=".55"/>
-              <circle cx="168" cy="150" r="7" fill="#f2a93c" stroke="#08192b" stroke-width="2.4"/>
+              <circle cx="230" cy="95" r="9" fill="#0a2338"/>
+              <text x="230" y="99" text-anchor="middle" font-size="11" font-weight="800" font-family="-apple-system,Segoe UI,sans-serif" fill="#f2a93c">B</text>
+
+              <!-- moving vehicle marker: travels A -> B -->
+              <g id="movingMarker">
+                <animateMotion dur="7s" repeatCount="indefinite" rotate="auto"
+                  path="M48,478 L108,382 L92,300 L188,262 L168,150 L246,96"/>
+                <circle class="pulse-dot" cx="0" cy="0" r="11" fill="#f2a93c" opacity=".55"/>
+                <circle cx="0" cy="0" r="7" fill="#f2a93c" stroke="#08192b" stroke-width="2.4"/>
+              </g>
             </svg>
 
             <div class="map-top">
@@ -801,7 +811,7 @@
     <div class="ap-dispatch">
       <p class="section-label" style="margin-bottom:8px">Yangi buyurtma yuborish (admin)</p>
       <label class="field-label">Qayerdan</label>
-      <input type="text" id="orderFromInput" class="ap-input" value="Samarqand, g‘isht zavodi" placeholder="Manzil">
+      <input type="text" id="orderFromInput" class="ap-input" value="AS Sherzod aka S-8" placeholder="Manzil">
       <label class="field-label">Qayerga</label>
       <input type="text" id="orderToInput" class="ap-input" value="Buxoro, qurilish bozori" placeholder="Manzil">
       <label class="field-label">Boshlanish sanasi</label>
@@ -850,14 +860,14 @@
   }
 
   function renderOtp(){
-    var val = document.getElementById('otpInput').value.replace(/\D/g,'').slice(0,6);
-    for(var i=0;i<6;i++){
+    var val = document.getElementById('otpInput').value.replace(/\D/g,'').slice(0,4);
+    for(var i=0;i<4;i++){
       var box = document.getElementById('otpBox'+i);
       var d = val[i];
       box.textContent = d || '–';
       box.classList.toggle('filled', !!d);
     }
-    document.getElementById('otpConfirmBtn').disabled = val.length !== 6;
+    document.getElementById('otpConfirmBtn').disabled = val.length !== 4;
   }
 
   function completeAuth(){
@@ -881,7 +891,7 @@
   var ORDERS = [
     { id:1, number:'#1001', from:'Toshkent, Sergeli tumani', to:'Andijon shahri', status:'done', startAt:'21-iyul, 06:20', endAt:'21-iyul, 09:45',
       cargo:'Qurilish g‘ishti', desc:'1200 dona silikat g‘isht, paletlarda joylashtirilgan. Tushirish uchun forklift kerak.' },
-    { id:2, number:'#1002', from:'Samarqand, g‘isht zavodi', to:'Buxoro, qurilish bozori', status:'queued', startAt:'21-iyul, 16:00', endAt:'21-iyul, 19:30',
+    { id:2, number:'#1002', from:'AS Sherzod aka S-8', to:'Buxoro, qurilish bozori', status:'queued', startAt:'21-iyul, 16:00', endAt:'21-iyul, 19:30',
       cargo:'G‘isht · 6 t', desc:'Qurilish g‘ishti, quruq holatda. Yomg‘irdan yopiq brezent bilan tashish tavsiya etiladi.' }
   ];
   var orderIdCounter = 3;
@@ -976,7 +986,7 @@
   }
 
   function pushNewOrder(){
-    var from = document.getElementById('orderFromInput').value.trim() || 'Samarqand';
+    var from = document.getElementById('orderFromInput').value.trim() || 'AS Sherzod aka S-8';
     var to = document.getElementById('orderToInput').value.trim() || 'Buxoro';
     var startAt = formatOrderDate(document.getElementById('orderStartInput').value) || 'Bugun, 16:00';
     var endAt = formatOrderDate(document.getElementById('orderEndInput').value) || 'Bugun, 20:00';
@@ -1444,6 +1454,11 @@
   }
 
   updateOrdersBadge();
+
+  if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    var mapSvg = document.querySelector('.map-svg');
+    if(mapSvg && mapSvg.pauseAnimations) mapSvg.pauseAnimations();
+  }
 </script>
 </body>
 </html>
