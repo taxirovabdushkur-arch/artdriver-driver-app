@@ -237,6 +237,12 @@
   .tab span{ font-size:9.5px; font-weight:700; letter-spacing:.01em; }
   .tab.active{ color:var(--amber); }
   .tab.active svg{ stroke:var(--amber); }
+  .tab-icon-wrap{ position:relative; display:inline-flex; }
+  .tab-badge{
+    display:none; position:absolute; top:-5px; right:-7px; background:var(--amber); color:#2a1c05;
+    font-size:9px; font-weight:800; min-width:14px; height:14px; border-radius:20px;
+    align-items:center; justify-content:center; padding:0 3px;
+  }
 
   .home-indicator{ position:absolute; bottom:9px; left:50%; transform:translateX(-50%); width:120px; height:4px; border-radius:3px; background:#2c4562; z-index:7; pointer-events:none; }
 
@@ -279,29 +285,35 @@
 
   .caption{ max-width:680px; text-align:center; font-size:13px; color:var(--steel-dim); line-height:1.6; }
 
-  /* ---- incoming order overlay ---- */
-  .order-overlay{
-    display:none; position:absolute; inset:0; z-index:20;
-    background:#050d16e6; align-items:center; justify-content:center; padding:20px;
+  /* ---- new-order toast ---- */
+  .toast{
+    position:absolute; top:-70px; left:12px; right:12px; z-index:15;
+    background:var(--panel-2); border:1px solid var(--amber); border-radius:14px;
+    padding:12px 14px; display:flex; align-items:center; gap:10px; cursor:pointer;
+    transition:top .35s ease;
   }
-  .order-overlay.open{ display:flex; }
-  .order-card{
-    width:100%; background:var(--panel); border:1px solid var(--amber); border-radius:20px;
-    padding:22px 20px 20px; display:flex; flex-direction:column; gap:14px;
-  }
-  .order-eyebrow{ display:flex; align-items:center; justify-content:space-between; }
-  .order-eyebrow span:first-child{ font-size:11px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--amber); }
-  .order-timer{ font-size:13px; font-weight:800; color:var(--ice); font-variant-numeric:tabular-nums; }
-  .order-timerbar{ height:3px; border-radius:2px; background:var(--field-border); overflow:hidden; }
-  .order-timerbar i{ display:block; height:100%; background:var(--amber); width:100%; transition:width 1s linear; }
-  @media (prefers-reduced-motion: reduce){ .order-timerbar i{ transition:none; } }
-  .order-route{ font-size:20px; font-weight:800; letter-spacing:-.01em; }
-  .order-meta{ display:flex; flex-direction:column; gap:8px; }
-  .order-meta .row{ display:flex; align-items:center; gap:8px; font-size:13px; color:var(--steel); }
-  .order-meta .row b{ color:var(--ice); font-weight:700; }
-  .order-actions{ display:flex; gap:10px; margin-top:4px; }
-  .order-actions .accept{ flex:1; height:52px; border-radius:13px; border:0; background:var(--amber); color:#2a1c05; font-size:14.5px; font-weight:800; cursor:pointer; }
-  .order-actions .decline{ flex:0 0 auto; padding:0 18px; height:52px; border-radius:13px; border:1.6px solid var(--field-border); background:transparent; color:var(--steel); font-size:13.5px; font-weight:700; cursor:pointer; }
+  .toast.show{ top:12px; }
+  @media (prefers-reduced-motion: reduce){ .toast{ transition:none; } }
+  .toast-icon{ font-size:18px; flex:0 0 auto; }
+  .toast-text{ font-size:12.5px; font-weight:700; color:var(--ice); }
+
+  /* ---- Buyurtmalar (orders) module ---- */
+  .order-list{ display:flex; flex-direction:column; gap:10px; }
+  .order-card-item{ background:var(--panel-2); border:1px solid var(--divider); border-radius:14px; padding:13px 14px; }
+  .order-card-item.new{ border-color:var(--amber); background:#f2a93c14; }
+  .oc-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+  .oc-tag{ font-size:9.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--amber); }
+  .oc-route{ font-size:14px; font-weight:800; }
+  .oc-meta{ display:flex; flex-direction:column; gap:4px; margin:6px 0 10px; }
+  .oc-meta .row{ font-size:12px; color:var(--steel); display:flex; align-items:center; gap:6px; }
+  .oc-meta .row b{ color:var(--ice); font-weight:700; }
+  .oc-actions{ display:flex; gap:8px; }
+  .oc-actions button{ flex:1; height:40px; border-radius:10px; font-size:12.5px; font-weight:800; cursor:pointer; border:0; font-family:inherit; }
+  .oc-actions .accept{ background:var(--amber); color:#2a1c05; }
+  .oc-actions .decline{ background:transparent; border:1.6px solid var(--field-border); color:var(--steel); }
+  .oc-chip{ font-size:10px; font-weight:700; padding:4px 9px; border-radius:20px; white-space:nowrap; }
+  .oc-chip.queued{ background:#26466a; color:var(--steel); }
+  .oc-chip.done{ background:#173a2a; color:var(--green); }
 
   /* ---- Hisobot -> Xarajatlar entry card ---- */
   .nav-card{
@@ -551,6 +563,17 @@
           </div>
         </div>
 
+        <!-- ===== ORDERS (Buyurtmalar) ===== -->
+        <div class="screen" id="screen-orders">
+          <div class="chat-head">
+            <h3>Buyurtmalar</h3>
+            <p>Yangi va rejalashtirilgan reyslar</p>
+          </div>
+          <div class="scroll">
+            <div class="order-list" id="orderList"></div>
+          </div>
+        </div>
+
         <!-- ===== CHAT (Telegram-style) ===== -->
         <div class="screen" id="screen-chat">
 
@@ -695,30 +718,22 @@
 
       </div>
 
-      <div class="order-overlay" id="orderOverlay">
-        <div class="order-card">
-          <div class="order-eyebrow">
-            <span>🆕 Yangi buyurtma</span>
-            <span class="order-timer" id="orderTimer">20s</span>
-          </div>
-          <div class="order-timerbar"><i id="orderTimerBar" style="width:100%"></i></div>
-          <div class="order-route" id="orderRoute">—</div>
-          <div class="order-meta">
-            <div class="row">📦 <b id="orderCargo">—</b></div>
-            <div class="row">📍 <b id="orderDist">—</b></div>
-            <div class="row">💰 <b id="orderPay">—</b></div>
-          </div>
-          <div class="order-actions">
-            <button type="button" class="decline" onclick="declineOrder(false)">Rad etish</button>
-            <button type="button" class="accept" onclick="acceptOrder()">Qabul qilish</button>
-          </div>
-        </div>
+      <div class="toast" id="orderToast" onclick="hideToastAndGo()">
+        <span class="toast-icon">🆕</span>
+        <span class="toast-text">Sizda yangi buyurtma bor!</span>
       </div>
 
       <div class="tabbar" id="tabbar" style="display:none">
         <button type="button" class="tab active" data-tab="home" onclick="showScreen('home')">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>
           <span>Bosh sahifa</span>
+        </button>
+        <button type="button" class="tab" data-tab="orders" onclick="showScreen('orders')">
+          <span class="tab-icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+            <span class="tab-badge" id="ordersTabBadge">0</span>
+          </span>
+          <span>Buyurtmalar</span>
         </button>
         <button type="button" class="tab" data-tab="chat" onclick="showScreen('chat')">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-4.6 7.6 8.5 8.5 0 0 1-8.8-.5L3 20l1.4-4.6a8.38 8.38 0 0 1-.9-3.9 8.5 8.5 0 1 1 17.5 0z"/></svg>
@@ -751,9 +766,13 @@
 
     <div class="ap-dispatch">
       <p class="section-label" style="margin-bottom:8px">Yangi buyurtma yuborish (admin)</p>
-      <input type="text" id="orderRouteInput" class="ap-input" value="Samarqand → Buxoro">
+      <input type="text" id="orderRouteInput" class="ap-input" value="Samarqand → Buxoro" placeholder="Marshrut">
+      <label class="field-label">Boshlanish sanasi</label>
+      <input type="datetime-local" id="orderStartInput" class="ap-input">
+      <label class="field-label">Tugash sanasi</label>
+      <input type="datetime-local" id="orderEndInput" class="ap-input">
       <button type="button" class="cta" onclick="pushNewOrder()">📤 Buyurtmani yuborish</button>
-      <p class="ap-note" style="margin-top:8px">Yuborilgach, haydovchi ilovasida to‘liq ekranli so‘rov chiqadi — u yerda <b>Qabul qilish</b> yoki <b>Rad etish</b> tugmasi bo‘ladi.</p>
+      <p class="ap-note" style="margin-top:8px">Yuborilgach, haydovchiga «Sizda yangi buyurtma bor!» degan bildirishnoma chiqadi va buyurtma <b>Buyurtmalar</b> bo‘limiga qo‘shiladi — u yerda Qabul qilish/Rad etish mumkin.</p>
     </div>
   </div>
 
@@ -774,6 +793,7 @@
     if(tabBtn) tabBtn.classList.add('active');
     if(id === 'expenses') showExpenseView('list');
     if(id === 'chat') showChatView('contacts');
+    if(id === 'orders') renderOrders();
   }
 
   /* ===== AUTH ===== */
@@ -805,62 +825,122 @@
     showScreen('home');
   }
 
-  /* ===== incoming order (admin -> driver) ===== */
-  var pendingOrder = null;
-  var orderCountdownTimer = null;
+  /* ===== Buyurtmalar (admin -> driver orders module) ===== */
+  var UZ_MONTHS = ['yan','fev','mar','apr','may','iyun','iyul','avg','sen','okt','noy','dek'];
+
+  function formatOrderDate(value){
+    if(!value) return null;
+    var d = new Date(value);
+    if(isNaN(d.getTime())) return null;
+    var hh = String(d.getHours()).padStart(2,'0');
+    var mm = String(d.getMinutes()).padStart(2,'0');
+    return d.getDate() + '-' + UZ_MONTHS[d.getMonth()] + ', ' + hh + ':' + mm;
+  }
+
+  var ORDERS = [
+    { id:1, route:'Toshkent → Andijon', cargo:null, dist:null, pay:null, status:'done', startAt:'21-iyul, 06:20', endAt:'21-iyul, 09:45' },
+    { id:2, route:'Samarqand → Buxoro', cargo:'G‘isht · 6 t', dist:'120 km · ~2 soat', pay:'260 000 so‘m', status:'queued', startAt:'21-iyul, 16:00', endAt:'21-iyul, 19:30' }
+  ];
+  var orderIdCounter = 3;
+  var toastTimer = null;
+
+  function renderOrders(){
+    var list = document.getElementById('orderList');
+    list.innerHTML = '';
+    if(!ORDERS.length){
+      list.innerHTML = '<p class="exp-empty">Buyurtmalar yo‘q</p>';
+      return;
+    }
+    ORDERS.forEach(function(o){
+      var card = document.createElement('div');
+      card.className = 'order-card-item' + (o.status === 'new' ? ' new' : '');
+      var dateRow = '<div class="row">📅 <b>' + o.startAt + ' — ' + o.endAt + '</b></div>';
+
+      if(o.status === 'new'){
+        card.innerHTML =
+          '<div class="oc-top"><span class="oc-tag">🆕 Yangi buyurtma</span></div>' +
+          '<div class="oc-route">' + o.route + '</div>' +
+          '<div class="oc-meta">' +
+            '<div class="row">📦 <b>' + o.cargo + '</b></div>' +
+            '<div class="row">📍 <b>' + o.dist + '</b></div>' +
+            '<div class="row">💰 <b>' + o.pay + '</b></div>' +
+            dateRow +
+          '</div>' +
+          '<div class="oc-actions">' +
+            '<button type="button" class="decline">Rad etish</button>' +
+            '<button type="button" class="accept">Qabul qilish</button>' +
+          '</div>';
+        card.querySelector('.accept').onclick = function(){ acceptOrder(o.id); };
+        card.querySelector('.decline').onclick = function(){ declineOrder(o.id); };
+      } else {
+        var chipClass = o.status === 'done' ? 'done' : 'queued';
+        var chipText = o.status === 'done' ? 'Bajarildi' : (o.status === 'queued' ? 'Navbatda' : 'Qabul qilindi');
+        card.innerHTML =
+          '<div class="oc-top"><div class="oc-route">' + o.route + '</div><span class="oc-chip ' + chipClass + '">' + chipText + '</span></div>' +
+          '<div class="oc-meta">' + dateRow + '</div>';
+      }
+      list.appendChild(card);
+    });
+  }
+
+  function updateOrdersBadge(){
+    var count = ORDERS.filter(function(o){ return o.status === 'new'; }).length;
+    var badge = document.getElementById('ordersTabBadge');
+    if(count > 0){
+      badge.textContent = count;
+      badge.style.display = 'flex';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  function showOrderToast(){
+    var toast = document.getElementById('orderToast');
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toast.classList.remove('show'); }, 4000);
+  }
+
+  function hideToastAndGo(){
+    document.getElementById('orderToast').classList.remove('show');
+    clearTimeout(toastTimer);
+    showScreen('orders');
+  }
 
   function pushNewOrder(){
     var route = document.getElementById('orderRouteInput').value.trim() || 'Samarqand → Buxoro';
-    pendingOrder = {
+    var startAt = formatOrderDate(document.getElementById('orderStartInput').value) || 'Bugun, 16:00';
+    var endAt = formatOrderDate(document.getElementById('orderEndInput').value) || 'Bugun, 20:00';
+    ORDERS.unshift({
+      id: orderIdCounter++,
       route: route,
       cargo: 'Sement · 8 t',
       dist: '215 km · ~3 soat',
-      pay: '480 000 so‘m'
-    };
-    document.getElementById('orderRoute').textContent = pendingOrder.route;
-    document.getElementById('orderCargo').textContent = pendingOrder.cargo;
-    document.getElementById('orderDist').textContent = pendingOrder.dist;
-    document.getElementById('orderPay').textContent = pendingOrder.pay;
-    document.getElementById('orderOverlay').classList.add('open');
-    startOrderCountdown(20);
+      pay: '480 000 so‘m',
+      status: 'new',
+      startAt: startAt,
+      endAt: endAt
+    });
+    renderOrders();
+    updateOrdersBadge();
+    showOrderToast();
   }
 
-  function startOrderCountdown(seconds){
-    clearInterval(orderCountdownTimer);
-    var timeLeft = seconds;
-    var total = seconds;
-    updateOrderCountdown(timeLeft, total);
-    orderCountdownTimer = setInterval(function(){
-      timeLeft--;
-      updateOrderCountdown(timeLeft, total);
-      if(timeLeft <= 0){
-        clearInterval(orderCountdownTimer);
-        declineOrder(true);
-      }
-    }, 1000);
-  }
-
-  function updateOrderCountdown(timeLeft, total){
-    document.getElementById('orderTimer').textContent = Math.max(0, timeLeft) + 's';
-    document.getElementById('orderTimerBar').style.width = Math.max(0, (timeLeft / total) * 100) + '%';
-  }
-
-  function acceptOrder(){
-    clearInterval(orderCountdownTimer);
-    document.getElementById('orderOverlay').classList.remove('open');
-    if(pendingOrder){
-      document.querySelector('.trip-float .route').textContent = pendingOrder.route;
-      document.getElementById('tripFloatSub').textContent = '🧭 Navigatsiya faol · ' + pendingOrder.dist;
-    }
-    pendingOrder = null;
+  function acceptOrder(id){
+    var o = ORDERS.find(function(x){ return x.id === id; });
+    if(!o) return;
+    o.status = 'accepted';
+    renderOrders();
+    updateOrdersBadge();
+    document.querySelector('.trip-float .route').textContent = o.route;
+    document.getElementById('tripFloatSub').textContent = '🧭 Navigatsiya faol · ' + o.dist;
     applyDriverStatus('start');
-    showScreen('home');
   }
 
-  function declineOrder(auto){
-    clearInterval(orderCountdownTimer);
-    document.getElementById('orderOverlay').classList.remove('open');
-    pendingOrder = null;
+  function declineOrder(id){
+    ORDERS = ORDERS.filter(function(x){ return x.id !== id; });
+    renderOrders();
+    updateOrdersBadge();
   }
 
   function logout(){
@@ -1306,6 +1386,8 @@
     list.scrollTop = list.scrollHeight;
     input.value = '';
   }
+
+  updateOrdersBadge();
 </script>
 </body>
 </html>
