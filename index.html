@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Artdriver — Haydovchi ilovasi (interaktiv maket)</title>
+<meta name="description" content="Artdriver haydovchi ilovasining interaktiv maketi: to'liq ekran xarita, smena statusi, chat va xarajatlar moduli.">
+<style>
+  :root{
+    --bg:#08192b;
+    --panel:#0e2c47;
+    --panel-2:#123a5e;
+    --field:#1c4d78;
+    --field-border:#2c5d8a;
+    --ice:#f3f6f9;
+    --steel:#9fb2c4;
+    --steel-dim:#6f8aa3;
+    --amber:#f2a93c;
+    --green:#5fd08a;
+    --gray-off:#7c8b9a;
+    --divider:#1e3f60;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse 900px 500px at 20% -10%, #123a5e55, transparent),
+      var(--bg);
+    color:var(--ice);
+    font-family:-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    display:flex; flex-direction:column; align-items:center;
+    gap:22px;
+    padding:40px 20px 56px;
+  }
+  .eyebrow{ font-size:11px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:var(--steel-dim); }
+  .heading{ text-align:center; max-width:640px; }
+  .heading h1{ margin:0 0 6px; font-size:22px; font-weight:800; letter-spacing:-.01em; text-wrap:balance; }
+  .heading p{ margin:0; font-size:14px; color:var(--steel); line-height:1.5; }
+  .hint{ font-size:12px; color:var(--steel-dim); max-width:560px; text-align:center; }
+  .hint b{ color:var(--amber); }
+
+  .layout{ display:flex; align-items:flex-start; gap:26px; flex-wrap:wrap; justify-content:center; }
+
+  .phone{
+    width:326px;
+    border-radius:40px;
+    background:linear-gradient(180deg,#0c2136,#081625);
+    padding:12px;
+    box-shadow:0 0 0 1px #1a2f45, 0 30px 60px -20px #00000090, inset 0 0 0 1px #223a53;
+    flex:0 0 auto;
+  }
+  .screenwrap{
+    position:relative; width:100%; aspect-ratio:9/19.5; border-radius:30px; overflow:hidden;
+    background:var(--panel); display:flex; flex-direction:column;
+  }
+  .notch{ position:absolute; top:10px; left:50%; transform:translateX(-50%); width:90px; height:22px; border-radius:14px; background:#050d16; z-index:8; }
+  .statusbar{
+    display:flex; align-items:center; justify-content:space-between; padding:16px 22px 4px;
+    font-size:13px; font-weight:700; font-variant-numeric:tabular-nums; color:var(--ice); flex:0 0 auto;
+    position:relative; z-index:6; background:var(--panel);
+  }
+  .statusbar .icons{ display:flex; align-items:center; gap:5px; }
+  .sig{ display:flex; align-items:flex-end; gap:2px; height:10px; }
+  .sig i{ width:3px; background:var(--ice); border-radius:1px; display:block; }
+  .sig i:nth-child(1){ height:4px; } .sig i:nth-child(2){ height:6px; }
+  .sig i:nth-child(3){ height:8px; } .sig i:nth-child(4){ height:10px; }
+  .wifi{ width:14px; height:10px; border:1.6px solid var(--ice); border-bottom:none; border-radius:8px 8px 0 0; opacity:.95; }
+  .batt{ width:22px; height:11px; border:1.4px solid var(--ice); border-radius:3px; position:relative; padding:1.5px; }
+  .batt::after{ content:""; position:absolute; right:-3px; top:3px; width:2px; height:5px; background:var(--ice); border-radius:1px; }
+  .batt i{ display:block; height:100%; width:88%; background:var(--green); border-radius:1px; }
+
+  .screens{ flex:1; min-height:0; position:relative; }
+  .screen{ display:none; flex-direction:column; height:100%; }
+  .screen.active{ display:flex; }
+  .scroll{ flex:1; overflow-y:auto; padding:18px 18px 10px; }
+  .section-label{ font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--steel-dim); margin:0 0 10px; }
+
+  /* ---- HOME: full-bleed map ---- */
+  .map-stage{ position:relative; flex:1; overflow:hidden; }
+  .map-svg{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+
+  .map-top{ position:absolute; top:12px; left:12px; right:12px; display:flex; align-items:center; justify-content:space-between; z-index:4; }
+  .chip-veh{ background:#08192bd9; border:1px solid var(--divider); border-radius:20px; padding:8px 13px; font-size:11px; font-weight:700; color:var(--steel); }
+  .chip-veh b{ color:var(--ice); }
+  .bell{ width:36px; height:36px; border-radius:50%; background:#08192bd9; border:1px solid var(--divider); color:var(--ice); font-size:15px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+
+  .status-rail{
+    position:absolute; right:12px; top:50%; transform:translateY(-50%); z-index:4;
+    display:flex; flex-direction:column; gap:8px;
+    background:#08192bd9; border:1px solid var(--divider); border-radius:22px; padding:8px;
+  }
+  .rail-btn{
+    width:46px; height:46px; border-radius:15px; border:0; background:transparent; color:var(--steel-dim);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer;
+  }
+  .rail-btn svg{ width:16px; height:16px; }
+  .rail-btn span{ font-size:8px; font-weight:800; letter-spacing:.02em; }
+  .rail-btn.start.active{ background:var(--green); color:#0b2a1a; }
+  .rail-btn.pause.active{ background:var(--amber); color:#2a1c05; }
+  .rail-btn.stop.active{ background:var(--gray-off); color:#12202c; }
+
+  .trip-float{
+    position:absolute; left:12px; right:70px; bottom:12px; z-index:4;
+    background:#0e2c47ee; border:1px solid var(--divider); border-radius:16px; padding:12px 13px;
+  }
+  .trip-float .route{ font-size:13.5px; font-weight:800; }
+  .trip-float .sub{ font-size:10.5px; color:var(--steel-dim); margin-top:2px; }
+  .trip-float button{
+    margin-top:9px; width:100%; border:0; background:var(--amber); color:#2a1c05; font-size:11.5px; font-weight:800;
+    padding:8px 0; border-radius:9px; cursor:pointer;
+  }
+
+  .nav-banner{
+    display:none; position:absolute; top:58px; left:12px; right:12px; z-index:4;
+    background:var(--panel-2); border:1px solid var(--amber); border-radius:14px; padding:10px 12px;
+    align-items:center; gap:10px;
+  }
+  .map-stage.nav-mode .nav-banner{ display:flex; }
+  .nb-icon{ width:32px; height:32px; border-radius:9px; background:#f2a93c26; color:var(--amber); display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:800; flex:0 0 auto; }
+  .nb-instr{ font-size:12.5px; font-weight:800; }
+  .nb-sub{ font-size:10.5px; color:var(--steel-dim); margin-top:1px; }
+
+  .pulse-dot{ animation:pulse 1.8s ease-out infinite; transform-origin:center; }
+  @media (prefers-reduced-motion: reduce){ .pulse-dot{ animation:none; } }
+  @keyframes pulse{
+    0%{ opacity:.55; transform:scale(1); }
+    70%{ opacity:0; transform:scale(2.6); }
+    100%{ opacity:0; transform:scale(2.6); }
+  }
+
+  /* ---- CHAT ---- */
+  .chat-head{ padding:16px 18px 12px; border-bottom:1px solid var(--divider); flex:0 0 auto; }
+  .chat-head h3{ margin:0 0 2px; font-size:15.5px; font-weight:800; }
+  .chat-head p{ margin:0; font-size:11.5px; color:var(--steel-dim); }
+  .chat-list{ flex:1; overflow-y:auto; padding:14px 16px; display:flex; flex-direction:column; gap:10px; }
+  .msg{ display:flex; flex-direction:column; max-width:78%; }
+  .msg.recv{ align-self:flex-start; align-items:flex-start; }
+  .msg.sent{ align-self:flex-end; align-items:flex-end; }
+  .msg .bubble{ padding:9px 12px; border-radius:14px; font-size:13px; line-height:1.4; }
+  .msg.recv .bubble{ background:var(--field); border:1px solid var(--field-border); border-bottom-left-radius:4px; }
+  .msg.sent .bubble{ background:var(--amber); color:#2a1c05; font-weight:600; border-bottom-right-radius:4px; }
+  .msg .time{ font-size:9.5px; color:var(--steel-dim); margin-top:3px; padding:0 2px; }
+
+  .req-card{
+    align-self:flex-start; max-width:86%; background:var(--panel-2); border:1px solid var(--amber);
+    border-radius:14px; padding:12px 13px; display:flex; flex-direction:column; gap:8px;
+  }
+  .req-card .tag{ font-size:9.5px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--amber); }
+  .req-card p{ margin:0; font-size:12.5px; line-height:1.4; }
+  .req-card button{ align-self:flex-start; border:0; background:var(--amber); color:#2a1c05; font-size:11.5px; font-weight:800; padding:7px 12px; border-radius:9px; cursor:pointer; }
+
+  .chat-input{ flex:0 0 auto; display:flex; gap:8px; padding:12px 14px; border-top:1px solid var(--divider); }
+  .chat-input input{
+    flex:1; background:var(--field); border:1.6px solid var(--field-border); border-radius:20px;
+    padding:10px 14px; color:var(--ice); font-size:13px; outline:0; font-family:inherit;
+  }
+  .chat-input input::placeholder{ color:var(--steel-dim); }
+  .chat-input button{
+    width:40px; height:40px; border-radius:50%; border:0; background:var(--amber); color:#2a1c05;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; flex:0 0 auto;
+  }
+
+  /* ---- REPORT ---- */
+  .stat-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:18px; }
+  .stat-card{ background:var(--panel-2); border:1px solid var(--divider); border-radius:14px; padding:13px 14px; }
+  .stat-card .v{ font-size:19px; font-weight:800; font-variant-numeric:tabular-nums; }
+  .stat-card .l{ font-size:10.5px; color:var(--steel-dim); font-weight:700; margin-top:3px; }
+  .bars{ display:flex; align-items:flex-end; gap:8px; height:100px; margin-bottom:8px; }
+  .bars .bar{ flex:1; background:var(--field-border); border-radius:5px 5px 2px 2px; position:relative; }
+  .bars .bar.hi{ background:var(--amber); }
+  .bar-labels{ display:flex; gap:8px; }
+  .bar-labels span{ flex:1; text-align:center; font-size:9.5px; color:var(--steel-dim); font-weight:700; }
+
+  /* ---- PROFILE ---- */
+  .profile-head{ display:flex; flex-direction:column; align-items:center; gap:10px; padding:22px 18px 18px; border-bottom:1px solid var(--divider); }
+  .profile-head .big-avatar{ width:64px; height:64px; border-radius:50%; background:var(--field); border:2px solid var(--field-border); display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:800; }
+  .profile-head h3{ margin:0; font-size:16.5px; font-weight:800; }
+  .profile-head p{ margin:0; font-size:12px; color:var(--steel-dim); }
+  .veh-chip{ background:var(--panel-2); border:1px solid var(--divider); border-radius:20px; padding:6px 12px; font-size:11.5px; font-weight:700; color:var(--steel); }
+  .row-list{ display:flex; flex-direction:column; }
+  .prow{ display:flex; align-items:center; justify-content:space-between; padding:14px 4px; border-bottom:1px solid var(--divider); font-size:13.5px; }
+  .prow .l{ display:flex; align-items:center; gap:10px; }
+  .prow .l .ic{ width:20px; text-align:center; color:var(--steel-dim); }
+  .prow .r{ color:var(--steel-dim); font-size:12px; }
+  .prow.logout{ color:#e17b6b; font-weight:700; border-bottom:none; }
+
+  .tabbar{ display:flex; border-top:1px solid var(--divider); background:#0a2338; padding:9px 6px 7px; flex:0 0 auto; position:relative; z-index:6; }
+  .tab{ flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; color:var(--steel-dim); background:none; border:0; cursor:pointer; font-family:inherit; }
+  .tab svg{ width:21px; height:21px; stroke:var(--steel-dim); }
+  .tab span{ font-size:9.5px; font-weight:700; letter-spacing:.01em; }
+  .tab.active{ color:var(--amber); }
+  .tab.active svg{ stroke:var(--amber); }
+
+  .home-indicator{ position:absolute; bottom:9px; left:50%; transform:translateX(-50%); width:120px; height:4px; border-radius:3px; background:#2c4562; z-index:7; pointer-events:none; }
+
+  /* ---- ADMIN PREVIEW PANEL ---- */
+  .admin-preview{
+    width:300px; flex:0 0 auto;
+    display:flex; flex-direction:column; gap:10px;
+    padding-top:6px;
+  }
+  .admin-preview .ap-eyebrow{ display:flex; align-items:center; gap:8px; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--steel-dim); }
+  .live-dot{ width:6px; height:6px; border-radius:50%; background:var(--green); animation:blink 1.6s ease-in-out infinite; }
+  @media (prefers-reduced-motion: reduce){ .live-dot{ animation:none; } }
+  @keyframes blink{ 0%,100%{ opacity:1; } 50%{ opacity:.35; } }
+
+  .ap-card{
+    background:var(--panel); border:1px solid var(--divider); border-radius:16px; padding:14px;
+    display:flex; gap:12px; align-items:center;
+  }
+  .ap-thumb{ width:52px; height:52px; border-radius:11px; background:var(--field); border:1px solid var(--field-border); display:flex; align-items:center; justify-content:center; font-size:20px; flex:0 0 auto; }
+  .ap-body{ flex:1; min-width:0; }
+  .ap-name{ font-size:13.5px; font-weight:800; }
+  .ap-driver{ font-size:11.5px; color:var(--steel-dim); margin-top:1px; }
+  .ap-badge{
+    display:inline-flex; align-items:center; gap:6px; margin-top:8px;
+    padding:4px 10px; border-radius:20px; font-size:11px; font-weight:800;
+  }
+  .ap-badge .d{ width:6px; height:6px; border-radius:50%; }
+  .ap-badge.ok{ background:#173a2a; color:var(--green); } .ap-badge.ok .d{ background:var(--green); }
+  .ap-badge.warn{ background:#3d3115; color:var(--amber); } .ap-badge.warn .d{ background:var(--amber); }
+  .ap-badge.off{ background:#26313c; color:var(--gray-off); } .ap-badge.off .d{ background:var(--gray-off); }
+
+  .ap-note{ font-size:12px; color:var(--steel-dim); line-height:1.6; }
+  .ap-note b{ color:var(--steel); }
+
+  .caption{ max-width:680px; text-align:center; font-size:13px; color:var(--steel-dim); line-height:1.6; }
+
+  /* ---- Hisobot -> Xarajatlar entry card ---- */
+  .nav-card{
+    width:100%; display:flex; align-items:center; gap:12px; text-align:left;
+    background:var(--panel-2); border:1px solid var(--divider); border-radius:14px;
+    padding:13px 14px; margin-bottom:18px; cursor:pointer; color:var(--ice); font-family:inherit;
+  }
+  .nc-icon{ width:38px; height:38px; border-radius:10px; background:var(--field); display:flex; align-items:center; justify-content:center; font-size:17px; flex:0 0 auto; }
+  .nc-body{ flex:1; min-width:0; }
+  .nc-title{ font-size:13.5px; font-weight:800; }
+  .nc-sub{ font-size:11px; color:var(--steel-dim); margin-top:2px; }
+  .nc-chev{ color:var(--steel-dim); font-size:14px; }
+
+  /* ---- Xarajatlar module (own screen) ---- */
+  .exp-view{ display:none; flex-direction:column; height:100%; }
+  .exp-view.active{ display:flex; }
+  .exp-header{ display:flex; align-items:center; justify-content:space-between; padding:14px; border-bottom:1px solid var(--divider); flex:0 0 auto; }
+  .exp-header h3{ margin:0; font-size:15px; font-weight:800; }
+  .back-btn{
+    width:34px; height:34px; border-radius:50%; border:1px solid var(--divider); background:var(--panel-2);
+    color:var(--ice); font-size:15px; display:flex; align-items:center; justify-content:center; cursor:pointer; flex:0 0 auto;
+  }
+
+  .add-expense-top{
+    width:100%; border:0; background:var(--amber); color:#2a1c05; font-weight:800; font-size:13.5px;
+    padding:13px 0; border-radius:12px; margin-bottom:16px; cursor:pointer;
+  }
+
+  .expense-list{ display:flex; flex-direction:column; gap:9px; margin-bottom:12px; }
+  .expense-item{ display:flex; align-items:center; gap:10px; background:var(--panel-2); border:1px solid var(--divider); border-radius:12px; padding:9px 10px; }
+  .expense-item img{ width:42px; height:42px; border-radius:9px; object-fit:cover; flex:0 0 auto; }
+  .expense-item .exp-icon{ width:42px; height:42px; border-radius:9px; background:var(--field); display:flex; align-items:center; justify-content:center; font-size:18px; flex:0 0 auto; }
+  .exp-body{ flex:1; min-width:0; }
+  .exp-title{ font-size:12.5px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .exp-sub{ font-size:10.5px; color:var(--steel-dim); margin-top:2px; }
+  .expense-item .locked{ font-size:12px; color:var(--steel-dim); flex:0 0 auto; }
+  .exp-empty{ font-size:12.5px; color:var(--steel-dim); text-align:center; padding:30px 10px; }
+
+  .field-label{ display:block; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--steel-dim); margin-bottom:8px; }
+
+  .photo-drop{
+    border:1.6px dashed var(--field-border); border-radius:14px; padding:28px 14px;
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+    color:var(--steel); font-size:12.5px; font-weight:700; cursor:pointer;
+    background:var(--panel-2); margin-bottom:18px; overflow:hidden;
+  }
+  .photo-drop .icon{ font-size:26px; }
+  .photo-drop.has-photo{ padding:0; border-style:solid; }
+  .photo-drop img{ width:100%; height:160px; object-fit:cover; display:block; }
+
+  .expense-textarea{
+    width:100%; background:var(--field); border:1.6px solid var(--field-border); border-radius:12px;
+    padding:12px 14px; color:var(--ice); font-size:13px; font-family:inherit; resize:none; margin-bottom:18px;
+  }
+  .expense-textarea::placeholder{ color:var(--steel-dim); }
+
+  .cta{
+    width:100%; height:50px; border-radius:13px; border:0; background:var(--amber); color:#2a1c05;
+    font-size:14.5px; font-weight:800; display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .cta:disabled{ background:var(--field); color:var(--steel-dim); cursor:not-allowed; }
+
+  .exp-hint{ font-size:11px; color:var(--steel-dim); text-align:center; margin-top:10px; }
+
+  /* ---- Pauza / Off sabab varag'i ---- */
+  .sheet-backdrop{
+    display:none; position:absolute; inset:0; z-index:10;
+    background:#050d16cc; align-items:flex-end;
+  }
+  .sheet-backdrop.open{ display:flex; }
+  .sheet{
+    width:100%; background:var(--panel); border-top:1px solid var(--divider);
+    border-radius:20px 20px 0 0; padding:18px 18px 22px; display:flex; flex-direction:column; gap:12px;
+  }
+  .sheet-head{ display:flex; align-items:center; justify-content:space-between; }
+  .sheet-head h3{ margin:0; font-size:15px; font-weight:800; }
+  .sheet-close{ width:28px; height:28px; border-radius:50%; border:0; background:var(--field); color:var(--ice); font-size:12px; cursor:pointer; }
+  .reason-list{ display:flex; flex-direction:column; gap:8px; }
+  .reason-pill{
+    display:flex; align-items:center; gap:10px; padding:11px 13px; border-radius:12px;
+    border:1.6px solid var(--field-border); background:var(--field); color:var(--ice);
+    font-size:13px; font-weight:600; cursor:pointer; text-align:left; font-family:inherit;
+  }
+  .reason-pill .radio{ width:16px; height:16px; border-radius:50%; border:1.6px solid var(--steel-dim); flex:0 0 auto; position:relative; }
+  .reason-pill.selected{ border-color:var(--amber); background:#f2a93c1a; }
+  .reason-pill.selected .radio{ border-color:var(--amber); }
+  .reason-pill.selected .radio::after{ content:""; position:absolute; inset:3px; border-radius:50%; background:var(--amber); }
+
+  .duration-picker{ display:flex; flex-direction:column; gap:8px; }
+  .duration-chip{
+    display:flex; align-items:center; justify-content:space-between; padding:11px 13px; border-radius:12px;
+    border:1.6px solid var(--field-border); background:var(--field); color:var(--ice);
+    font-size:13px; font-weight:700; cursor:pointer; font-family:inherit;
+  }
+  .duration-chip .dur{ font-size:11px; color:var(--steel-dim); font-weight:700; font-variant-numeric:tabular-nums; }
+  .duration-chip.selected{ border-color:var(--amber); background:#f2a93c1a; }
+  .duration-chip.selected .dur{ color:var(--amber); }
+  .deadline-line{ font-size:12.5px; color:var(--steel); text-align:center; padding:10px 0 2px; }
+  .deadline-line b{ color:var(--amber); font-variant-numeric:tabular-nums; }
+</style>
+</head>
+<body>
+
+<div class="eyebrow">Artdriver · Haydovchi ilovasi · Interaktiv maket</div>
+<div class="heading">
+  <h1>Bosh sahifa: to‘liq xarita + status paneli</h1>
+  <p>Xarita butun ekranni egallaydi, pastda 4 bo‘limli menyu turadi. O‘ng tomonda — Boshlash / Pauza / To‘xtatish holat tugmalari, ular Fleet-panelida rahbariyatga real vaqtda ko‘rinadi.</p>
+</div>
+<p class="hint">👉 O‘ngdagi <b>status panelini</b> bosing — pastdagi «Fleet-panelda ko‘rinishi» kartasi darhol yangilanadi. Pastki menyu va chat ham ishlaydi.</p>
+
+<div class="layout">
+
+  <div class="phone">
+    <div class="screenwrap">
+      <div class="notch"></div>
+      <div class="statusbar">
+        <span>9:41</span>
+        <div class="icons">
+          <span class="sig"><i></i><i></i><i></i><i></i></span>
+          <span class="wifi"></span>
+          <span class="batt"><i></i></span>
+        </div>
+      </div>
+
+      <div class="screens">
+
+        <!-- ===== HOME (full map) ===== -->
+        <div class="screen active" id="screen-home">
+          <div class="map-stage nav-mode" id="mapStage">
+            <svg class="map-svg" viewBox="0 0 300 520" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+              <rect width="300" height="520" fill="#0a2338"/>
+              <g stroke="#16324e" stroke-width="1.4">
+                <line x1="6" y1="70" x2="294" y2="70"/>
+                <line x1="6" y1="150" x2="294" y2="150"/>
+                <line x1="6" y1="230" x2="294" y2="230"/>
+                <line x1="6" y1="310" x2="294" y2="310"/>
+                <line x1="6" y1="390" x2="294" y2="390"/>
+                <line x1="6" y1="470" x2="294" y2="470"/>
+                <line x1="55" y1="10" x2="55" y2="510"/>
+                <line x1="130" y1="10" x2="130" y2="510"/>
+                <line x1="205" y1="10" x2="205" y2="510"/>
+                <line x1="260" y1="10" x2="260" y2="510"/>
+              </g>
+              <polyline points="48,478 108,382 92,300 188,262 168,150 246,96" fill="none" stroke="#a9bbcb" stroke-width="3" stroke-dasharray="1 8" stroke-linecap="round"/>
+              <circle cx="48" cy="478" r="5" fill="#6f8aa3"/>
+              <path d="M246 96c0-9-7-16-16-16s-16 7-16 16c0 12 16 25 16 25s16-13 16-25z" fill="#f2a93c"/>
+              <circle cx="230" cy="95" r="4.5" fill="#0a2338"/>
+              <circle class="pulse-dot" cx="168" cy="150" r="11" fill="#f2a93c" opacity=".55"/>
+              <circle cx="168" cy="150" r="7" fill="#f2a93c" stroke="#08192b" stroke-width="2.4"/>
+            </svg>
+
+            <div class="map-top">
+              <div class="chip-veh"><b>MAN TGX</b> · 01 D 789 AC</div>
+              <button type="button" class="bell" aria-label="Bildirishnomalar">🔔</button>
+            </div>
+
+            <div class="nav-banner" id="navBanner">
+              <div class="nb-icon">↰</div>
+              <div class="nb-text">
+                <div class="nb-instr">300 m dan keyin chapga buriling</div>
+                <div class="nb-sub">Samarqand ko‘chasi</div>
+              </div>
+            </div>
+
+            <div class="status-rail" role="group" aria-label="Smena holati">
+              <button type="button" class="rail-btn start active" onclick="applyDriverStatus('start')" aria-pressed="true">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 4l14 8-14 8V4z"/></svg>
+                <span>Old</span>
+              </button>
+              <button type="button" class="rail-btn pause" onclick="openReasonSheet('pause')" aria-pressed="false">
+                <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+                <span>Pauza</span>
+              </button>
+              <button type="button" class="rail-btn stop" onclick="openReasonSheet('stop')" aria-pressed="false">
+                <svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>
+                <span>Off</span>
+              </button>
+            </div>
+
+            <div class="trip-float">
+              <div class="route">Toshkent → Samarqand</div>
+              <div class="sub" id="tripFloatSub">🧭 Navigatsiya faol · ETA 14:30</div>
+              <button type="button" onclick="showScreen('chat')">Reys tafsiloti</button>
+            </div>
+          </div>
+
+          <div class="sheet-backdrop" id="sheetBackdrop" onclick="if(event.target===this) closeReasonSheet()">
+            <div class="sheet">
+              <div class="sheet-head">
+                <h3 id="sheetTitle">To‘xtatish sababi</h3>
+                <button type="button" class="sheet-close" onclick="closeReasonSheet()" aria-label="Yopish">✕</button>
+              </div>
+              <div class="reason-list" id="reasonList"></div>
+
+              <div class="extra-block" id="durationBlock" style="display:none">
+                <div class="duration-picker" id="durationPicker"></div>
+                <div class="deadline-line" id="deadlineLine" style="display:none">⏱ Tugash vaqti: <b id="deadlineTime"></b></div>
+              </div>
+
+              <textarea id="reasonOther" class="expense-textarea" rows="2" placeholder="Sababni yozing…" style="display:none" oninput="onReasonOtherInput()"></textarea>
+
+              <button type="button" class="cta" id="expenseCTA" style="display:none" onclick="confirmExpenseReason()">🧾 Xarajat qo‘shish</button>
+              <button type="button" class="cta" id="reasonConfirm" onclick="confirmReason()" disabled>Tasdiqlash</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== CHAT ===== -->
+        <div class="screen" id="screen-chat">
+          <div class="chat-head">
+            <h3>Rahbariyat bilan chat</h3>
+            <p>Dispetcher · Nodira Yusupova</p>
+          </div>
+          <div class="chat-list" id="chatList">
+            <div class="msg recv">
+              <div class="bubble">Assalomu alaykum! Samarqanddagi yuk tayyor, 14:00 gacha yetib borishga harakat qiling.</div>
+              <div class="time">10:12</div>
+            </div>
+            <div class="msg sent">
+              <div class="bubble">Xo‘p bo‘ladi, hozir yo‘ldaman.</div>
+              <div class="time">10:14</div>
+            </div>
+            <div class="req-card">
+              <span class="tag">So‘rov · Rahbariyatdan</span>
+              <p>Iltimos, o‘tgan reys uchun yoqilg‘i chekini yuklab qo‘ying.</p>
+              <button type="button" onclick="goToAddExpense('Yoqilg‘i cheki')">📷 Xarajat qo‘shish</button>
+            </div>
+            <div class="msg recv">
+              <div class="bubble">Yo‘lda muammo bo‘lsa, shu yerga yozing.</div>
+              <div class="time">10:15</div>
+            </div>
+          </div>
+          <div class="chat-input">
+            <input type="text" id="chatInput" placeholder="Xabar yozing…" onkeydown="if(event.key==='Enter')sendMessage()">
+            <button type="button" onclick="sendMessage()" aria-label="Yuborish">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- ===== REPORT ===== -->
+        <div class="screen" id="screen-report">
+          <div class="scroll">
+            <p class="section-label">Bu oy</p>
+            <div class="stat-grid">
+              <div class="stat-card"><div class="v">2 340 km</div><div class="l">Bosib o‘tildi</div></div>
+              <div class="stat-card"><div class="v">18</div><div class="l">Yakunlangan reys</div></div>
+              <div class="stat-card"><div class="v">8s 20d</div><div class="l">O‘rtacha smena</div></div>
+              <div class="stat-card"><div class="v">96%</div><div class="l">Vaqtida yetkazish</div></div>
+            </div>
+
+            <button type="button" class="nav-card" onclick="showScreen('expenses','report')">
+              <span class="nc-icon">🧾</span>
+              <span class="nc-body">
+                <span class="nc-title">Xarajatlar</span>
+                <span class="nc-sub">2 ta yozuv · tarixni ko‘rish</span>
+              </span>
+              <span class="nc-chev">›</span>
+            </button>
+
+            <p class="section-label">Kunlik masofa (7 kun)</p>
+            <div class="bars">
+              <div class="bar" style="height:42%"></div>
+              <div class="bar" style="height:68%"></div>
+              <div class="bar" style="height:35%"></div>
+              <div class="bar hi" style="height:88%"></div>
+              <div class="bar" style="height:54%"></div>
+              <div class="bar" style="height:22%"></div>
+              <div class="bar" style="height:60%"></div>
+            </div>
+            <div class="bar-labels"><span>D</span><span>S</span><span>Ch</span><span>P</span><span>J</span><span>Sh</span><span>Ya</span></div>
+          </div>
+        </div>
+
+        <!-- ===== EXPENSES (alohida modul) ===== -->
+        <div class="screen" id="screen-expenses">
+
+          <div class="exp-view active" id="expenseListView">
+            <div class="exp-header">
+              <button type="button" class="back-btn" onclick="showScreen('report')" aria-label="Orqaga">←</button>
+              <h3>Xarajatlar tarixi</h3>
+              <span style="width:34px"></span>
+            </div>
+            <div class="scroll">
+              <button type="button" class="add-expense-top" onclick="showExpenseView('add')">+ Xarajat qo‘shish</button>
+              <div class="expense-list" id="expenseList">
+                <div class="expense-item">
+                  <div class="exp-icon">🧾</div>
+                  <div class="exp-body">
+                    <div class="exp-title">Yoqilg‘i cheki</div>
+                    <div class="exp-sub">11-iyul, 09:40</div>
+                  </div>
+                  <span class="locked" title="O‘zgartirib bo‘lmaydi">🔒</span>
+                </div>
+                <div class="expense-item">
+                  <div class="exp-icon">🧾</div>
+                  <div class="exp-body">
+                    <div class="exp-title">Yo‘l yig‘imi</div>
+                    <div class="exp-sub">9-iyul, 15:12</div>
+                  </div>
+                  <span class="locked" title="O‘zgartirib bo‘lmaydi">🔒</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="exp-view" id="expenseAddView">
+            <div class="exp-header">
+              <button type="button" class="back-btn" onclick="showExpenseView('list')" aria-label="Bekor qilish">←</button>
+              <h3>Yangi xarajat</h3>
+              <span style="width:34px"></span>
+            </div>
+            <div class="scroll">
+              <label class="field-label">Chek surati</label>
+              <div class="photo-drop" id="photoDrop" onclick="document.getElementById('receiptInput').click()">
+                <span class="icon">📷</span>
+                <span>Surat olish uchun bosing</span>
+              </div>
+
+              <label class="field-label">Tavsif</label>
+              <textarea id="expenseDesc" class="expense-textarea" rows="3" placeholder="Masalan: Yoqilg‘i, yo‘l yig‘imi, avtoservis…" oninput="updateSaveState()"></textarea>
+
+              <button type="button" class="cta" id="saveExpenseBtn" onclick="saveExpense()" disabled>Saqlash</button>
+              <p class="exp-hint">Saqlangandan so‘ng xarajatni o‘zgartirib yoki o‘chirib bo‘lmaydi.</p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ===== PROFILE ===== -->
+        <div class="screen" id="screen-profile">
+          <div class="profile-head">
+            <div class="big-avatar">AK</div>
+            <h3>Aziz Karimov</h3>
+            <p>+998 90 123 45 67</p>
+            <span class="veh-chip">MAN TGX · 01 D 789 AC</span>
+          </div>
+          <div class="scroll">
+            <div class="row-list">
+              <div class="prow"><span class="l"><span class="ic">🪪</span>Haydovchilik guvohnomasi</span><span class="r">Faol ›</span></div>
+              <div class="prow"><span class="l"><span class="ic">🚚</span>Biriktirilgan tirkama</span><span class="r">Krone ›</span></div>
+              <div class="prow"><span class="l"><span class="ic">🌐</span>Til</span><span class="r">O‘zbekcha ›</span></div>
+              <div class="prow"><span class="l"><span class="ic">🔔</span>Bildirishnomalar</span><span class="r">Yoqilgan ›</span></div>
+              <div class="prow"><span class="l"><span class="ic">❓</span>Yordam</span><span class="r">›</span></div>
+              <div class="prow logout"><span class="l">Chiqish</span></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="tabbar">
+        <button type="button" class="tab active" data-tab="home" onclick="showScreen('home')">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>
+          <span>Bosh sahifa</span>
+        </button>
+        <button type="button" class="tab" data-tab="chat" onclick="showScreen('chat')">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-4.6 7.6 8.5 8.5 0 0 1-8.8-.5L3 20l1.4-4.6a8.38 8.38 0 0 1-.9-3.9 8.5 8.5 0 1 1 17.5 0z"/></svg>
+          <span>Chat</span>
+        </button>
+        <button type="button" class="tab" data-tab="report" onclick="showScreen('report')">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V10m6 9V5m6 14v-7m6 7V8"/></svg>
+          <span>Hisobot</span>
+        </button>
+        <button type="button" class="tab" data-tab="profile" onclick="showScreen('profile')">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+          <span>Profil</span>
+        </button>
+      </div>
+      <div class="home-indicator"></div>
+    </div>
+  </div>
+
+  <div class="admin-preview">
+    <div class="ap-eyebrow"><span class="live-dot"></span> Fleet-panelda qanday ko‘rinadi</div>
+    <div class="ap-card">
+      <div class="ap-thumb">🚛</div>
+      <div class="ap-body">
+        <div class="ap-name">MAN TGX · 01 D 789 AC</div>
+        <div class="ap-driver">Aziz Karimov</div>
+        <span class="ap-badge ok" id="apBadge"><span class="d"></span><span id="apBadgeText">Faol · yo‘lda</span></span>
+      </div>
+    </div>
+    <p class="ap-note">O‘ngdagi status panelida <b>Old / Pauza / Off</b> tugmalaridan birini bossangiz — bu yerdagi holat ham darhol yangilanadi. Aynan shunday belgi rahbariyat Fleet-panelidagi mashina ro‘yxatida ko‘radi.</p>
+  </div>
+
+</div>
+
+<p class="caption">Full-screen xarita — Yandex Pro va Uber Driver’dagi kabi asosiy sirtni egallaydi; ustidagi status paneli va pastki menyu esa doim ko‘rinib turadi. «Xarajatlar» — Hisobot ichidan ochiladigan alohida modul: avval tarix ko‘rinadi, yangi yozuv esa surat + tavsif bilan qo‘shiladi va saqlangandan so‘ng o‘zgartirib bo‘lmaydi.</p>
+
+<input type="file" id="receiptInput" accept="image/*" capture="environment" style="display:none" onchange="handleReceiptPhoto(event)">
+
+<script>
+  function showScreen(id, tabId){
+    tabId = tabId || id;
+    document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+    document.getElementById('screen-'+id).classList.add('active');
+    document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+    var tabBtn = document.querySelector('.tab[data-tab="'+tabId+'"]');
+    if(tabBtn) tabBtn.classList.add('active');
+    if(id === 'expenses') showExpenseView('list');
+  }
+
+  function showExpenseView(view){
+    document.querySelectorAll('.exp-view').forEach(function(v){ v.classList.remove('active'); });
+    document.getElementById(view === 'add' ? 'expenseAddView' : 'expenseListView').classList.add('active');
+  }
+
+  function goToAddExpense(prefill){
+    showScreen('expenses', 'report');
+    showExpenseView('add');
+    if(prefill){
+      var d = document.getElementById('expenseDesc');
+      d.value = prefill;
+      updateSaveState();
+    }
+  }
+
+  var STATUS_META = {
+    start: { text:'Faol · yo‘lda', badge:'ok' },
+    pause: { text:'Pauzada',       badge:'warn' },
+    stop:  { text:'Oflayn',        badge:'off' }
+  };
+
+  var REASON_CONFIG = {
+    pause: [
+      { label:'Dam olish',        type:'rest' },
+      { label:'Yoqilg‘i quyish',  type:'expense' },
+      { label:'Ovqatlanish',      type:'meal' },
+      { label:'Texnik to‘xtash',  type:'text' },
+      { label:'Boshqa',           type:'text' }
+    ],
+    stop: [
+      { label:'Smena tugadi',                type:'none' },
+      { label:'Texnik nosozlik',             type:'text' },
+      { label:'Kasallik / shaxsiy sabab',    type:'text' },
+      { label:'Boshqa',                      type:'text' }
+    ]
+  };
+
+  var DURATION_OPTIONS = {
+    rest: [ { label:'😴 To‘liq uyqu', minutes:480 }, { label:'💧 Suv ichish', minutes:15 } ],
+    meal: [ { label:'🍽 Qisqa tanaffus', minutes:30 }, { label:'🍲 To‘liq ovqatlanish', minutes:60 } ]
+  };
+
+  var pendingReasonState = null;
+  var selectedReasonLabel = null;
+  var selectedReasonType = null;
+  var selectedDeadlineText = null;
+
+  function applyDriverStatus(state, reason){
+    document.querySelectorAll('.rail-btn').forEach(function(b){
+      b.classList.remove('active');
+      b.setAttribute('aria-pressed','false');
+    });
+    var activeBtn = document.querySelector('.rail-btn.'+state);
+    activeBtn.classList.add('active');
+    activeBtn.setAttribute('aria-pressed','true');
+
+    var meta = STATUS_META[state];
+    var badge = document.getElementById('apBadge');
+    badge.className = 'ap-badge ' + meta.badge;
+    document.getElementById('apBadgeText').textContent = reason ? meta.text + ' · ' + reason : meta.text;
+
+    document.getElementById('mapStage').classList.toggle('nav-mode', state === 'start');
+
+    var sub = document.getElementById('tripFloatSub');
+    if(state === 'start') sub.textContent = '🧭 Navigatsiya faol · ETA 14:30';
+    else if(state === 'pause') sub.textContent = '⏸ Pauzada · ' + reason;
+    else sub.textContent = '⏹ To‘xtatildi · ' + reason;
+  }
+
+  function openReasonSheet(state){
+    pendingReasonState = state;
+    document.getElementById('sheetTitle').textContent = state === 'pause' ? 'Nega pauza qilyapsiz?' : 'To‘xtatish sababi';
+
+    var list = document.getElementById('reasonList');
+    list.innerHTML = '';
+    REASON_CONFIG[state].forEach(function(cfg){
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'reason-pill';
+      var radio = document.createElement('span');
+      radio.className = 'radio';
+      var label = document.createElement('span');
+      label.textContent = cfg.label;
+      btn.appendChild(radio);
+      btn.appendChild(label);
+      btn.onclick = function(){ selectReason(cfg, btn); };
+      list.appendChild(btn);
+    });
+
+    resetSheetExtras();
+    document.getElementById('sheetBackdrop').classList.add('open');
+  }
+
+  function resetSheetExtras(){
+    selectedReasonLabel = null;
+    selectedReasonType = null;
+    selectedDeadlineText = null;
+    document.getElementById('durationBlock').style.display = 'none';
+    document.getElementById('deadlineLine').style.display = 'none';
+    var other = document.getElementById('reasonOther');
+    other.style.display = 'none';
+    other.value = '';
+    document.getElementById('expenseCTA').style.display = 'none';
+    document.getElementById('reasonConfirm').style.display = 'flex';
+    document.getElementById('reasonConfirm').disabled = true;
+  }
+
+  function selectReason(cfg, btn){
+    document.querySelectorAll('.reason-pill').forEach(function(p){ p.classList.remove('selected'); });
+    btn.classList.add('selected');
+    selectedReasonLabel = cfg.label;
+    selectedReasonType = cfg.type;
+    selectedDeadlineText = null;
+
+    document.getElementById('durationBlock').style.display = 'none';
+    document.getElementById('deadlineLine').style.display = 'none';
+    document.getElementById('reasonOther').style.display = 'none';
+    document.getElementById('expenseCTA').style.display = 'none';
+    document.getElementById('reasonConfirm').style.display = 'flex';
+    document.getElementById('reasonConfirm').disabled = true;
+
+    if(cfg.type === 'rest' || cfg.type === 'meal'){
+      renderDurationPicker(cfg.type);
+      document.getElementById('durationBlock').style.display = 'block';
+    } else if(cfg.type === 'text'){
+      document.getElementById('reasonOther').style.display = 'block';
+    } else if(cfg.type === 'expense'){
+      document.getElementById('reasonConfirm').style.display = 'none';
+      document.getElementById('expenseCTA').style.display = 'flex';
+    } else {
+      document.getElementById('reasonConfirm').disabled = false;
+    }
+  }
+
+  function renderDurationPicker(type){
+    var picker = document.getElementById('durationPicker');
+    picker.innerHTML = '';
+    DURATION_OPTIONS[type].forEach(function(opt){
+      var chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'duration-chip';
+      var label = document.createElement('span');
+      label.textContent = opt.label;
+      var dur = document.createElement('span');
+      dur.className = 'dur';
+      dur.textContent = opt.minutes >= 60 ? (opt.minutes/60) + ' soat' : opt.minutes + ' daqiqa';
+      chip.appendChild(label);
+      chip.appendChild(dur);
+      chip.onclick = function(){ selectDuration(opt, chip); };
+      picker.appendChild(chip);
+    });
+  }
+
+  function selectDuration(opt, chip){
+    document.querySelectorAll('.duration-chip').forEach(function(c){ c.classList.remove('selected'); });
+    chip.classList.add('selected');
+
+    var deadline = new Date(Date.now() + opt.minutes * 60000);
+    var hh = String(deadline.getHours()).padStart(2,'0');
+    var mm = String(deadline.getMinutes()).padStart(2,'0');
+    selectedDeadlineText = hh + ':' + mm;
+    document.getElementById('deadlineTime').textContent = selectedDeadlineText;
+    document.getElementById('deadlineLine').style.display = 'block';
+
+    document.getElementById('reasonConfirm').disabled = false;
+  }
+
+  function onReasonOtherInput(){
+    var val = document.getElementById('reasonOther').value.trim();
+    document.getElementById('reasonConfirm').disabled = !val;
+  }
+
+  function closeReasonSheet(){
+    document.getElementById('sheetBackdrop').classList.remove('open');
+    pendingReasonState = null;
+  }
+
+  function buildReasonText(){
+    if(selectedReasonType === 'text'){
+      var note = document.getElementById('reasonOther').value.trim();
+      return selectedReasonLabel === 'Boshqa' ? note : (selectedReasonLabel + ': ' + note);
+    }
+    if((selectedReasonType === 'rest' || selectedReasonType === 'meal') && selectedDeadlineText){
+      return selectedReasonLabel + ' (' + selectedDeadlineText + ' gacha)';
+    }
+    return selectedReasonLabel;
+  }
+
+  function confirmReason(){
+    var text = buildReasonText();
+    if(!text || !pendingReasonState) return;
+    applyDriverStatus(pendingReasonState, text);
+    document.getElementById('sheetBackdrop').classList.remove('open');
+  }
+
+  function confirmExpenseReason(){
+    if(!pendingReasonState) return;
+    applyDriverStatus(pendingReasonState, 'Yoqilg‘i quyish');
+    document.getElementById('sheetBackdrop').classList.remove('open');
+    goToAddExpense('Yoqilg‘i quyish');
+  }
+
+  var pendingExpensePhoto = null;
+
+  function handleReceiptPhoto(evt){
+    var file = evt.target.files && evt.target.files[0];
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e){
+      pendingExpensePhoto = e.target.result;
+      var drop = document.getElementById('photoDrop');
+      drop.classList.add('has-photo');
+      drop.innerHTML = '';
+      var img = document.createElement('img');
+      img.src = pendingExpensePhoto;
+      img.alt = 'Chek surati';
+      drop.appendChild(img);
+      updateSaveState();
+    };
+    reader.readAsDataURL(file);
+    evt.target.value = '';
+  }
+
+  function updateSaveState(){
+    var desc = document.getElementById('expenseDesc').value.trim();
+    document.getElementById('saveExpenseBtn').disabled = !(pendingExpensePhoto && desc);
+  }
+
+  function resetExpenseForm(){
+    pendingExpensePhoto = null;
+    document.getElementById('expenseDesc').value = '';
+    document.getElementById('saveExpenseBtn').disabled = true;
+    var drop = document.getElementById('photoDrop');
+    drop.classList.remove('has-photo');
+    drop.innerHTML = '<span class="icon">📷</span><span>Surat olish uchun bosing</span>';
+  }
+
+  function saveExpense(){
+    var desc = document.getElementById('expenseDesc').value.trim();
+    if(!pendingExpensePhoto || !desc) return;
+
+    var list = document.getElementById('expenseList');
+    var item = document.createElement('div');
+    item.className = 'expense-item';
+
+    var img = document.createElement('img');
+    img.src = pendingExpensePhoto;
+    img.alt = 'Chek surati';
+
+    var body = document.createElement('div');
+    body.className = 'exp-body';
+    var title = document.createElement('div');
+    title.className = 'exp-title';
+    title.textContent = desc;
+    var sub = document.createElement('div');
+    sub.className = 'exp-sub';
+    sub.textContent = 'Hozir qo‘shildi';
+    body.appendChild(title);
+    body.appendChild(sub);
+
+    var lock = document.createElement('span');
+    lock.className = 'locked';
+    lock.title = 'O‘zgartirib bo‘lmaydi';
+    lock.textContent = '🔒';
+
+    item.appendChild(img);
+    item.appendChild(body);
+    item.appendChild(lock);
+    list.insertBefore(item, list.firstChild);
+
+    resetExpenseForm();
+    showExpenseView('list');
+  }
+
+  function sendMessage(){
+    var input = document.getElementById('chatInput');
+    var text = input.value.trim();
+    if(!text) return;
+    var list = document.getElementById('chatList');
+    var wrap = document.createElement('div');
+    wrap.className = 'msg sent';
+    var bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.textContent = text;
+    var time = document.createElement('div');
+    time.className = 'time';
+    time.textContent = 'Hozir';
+    wrap.appendChild(bubble);
+    wrap.appendChild(time);
+    list.appendChild(wrap);
+    list.scrollTop = list.scrollHeight;
+    input.value = '';
+  }
+</script>
+</body>
+</html>
