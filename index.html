@@ -271,7 +271,37 @@
   .ap-note{ font-size:12px; color:var(--steel-dim); line-height:1.6; }
   .ap-note b{ color:var(--steel); }
 
+  .ap-dispatch{ background:var(--panel); border:1px solid var(--divider); border-radius:16px; padding:14px; }
+  .ap-input{
+    width:100%; background:var(--panel-2); border:1.6px solid var(--divider); border-radius:10px;
+    padding:10px 12px; color:var(--ice); font-size:13px; font-family:inherit; margin-bottom:10px;
+  }
+
   .caption{ max-width:680px; text-align:center; font-size:13px; color:var(--steel-dim); line-height:1.6; }
+
+  /* ---- incoming order overlay ---- */
+  .order-overlay{
+    display:none; position:absolute; inset:0; z-index:20;
+    background:#050d16e6; align-items:center; justify-content:center; padding:20px;
+  }
+  .order-overlay.open{ display:flex; }
+  .order-card{
+    width:100%; background:var(--panel); border:1px solid var(--amber); border-radius:20px;
+    padding:22px 20px 20px; display:flex; flex-direction:column; gap:14px;
+  }
+  .order-eyebrow{ display:flex; align-items:center; justify-content:space-between; }
+  .order-eyebrow span:first-child{ font-size:11px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--amber); }
+  .order-timer{ font-size:13px; font-weight:800; color:var(--ice); font-variant-numeric:tabular-nums; }
+  .order-timerbar{ height:3px; border-radius:2px; background:var(--field-border); overflow:hidden; }
+  .order-timerbar i{ display:block; height:100%; background:var(--amber); width:100%; transition:width 1s linear; }
+  @media (prefers-reduced-motion: reduce){ .order-timerbar i{ transition:none; } }
+  .order-route{ font-size:20px; font-weight:800; letter-spacing:-.01em; }
+  .order-meta{ display:flex; flex-direction:column; gap:8px; }
+  .order-meta .row{ display:flex; align-items:center; gap:8px; font-size:13px; color:var(--steel); }
+  .order-meta .row b{ color:var(--ice); font-weight:700; }
+  .order-actions{ display:flex; gap:10px; margin-top:4px; }
+  .order-actions .accept{ flex:1; height:52px; border-radius:13px; border:0; background:var(--amber); color:#2a1c05; font-size:14.5px; font-weight:800; cursor:pointer; }
+  .order-actions .decline{ flex:0 0 auto; padding:0 18px; height:52px; border-radius:13px; border:1.6px solid var(--field-border); background:transparent; color:var(--steel); font-size:13.5px; font-weight:700; cursor:pointer; }
 
   /* ---- Hisobot -> Xarajatlar entry card ---- */
   .nav-card{
@@ -665,6 +695,26 @@
 
       </div>
 
+      <div class="order-overlay" id="orderOverlay">
+        <div class="order-card">
+          <div class="order-eyebrow">
+            <span>🆕 Yangi buyurtma</span>
+            <span class="order-timer" id="orderTimer">20s</span>
+          </div>
+          <div class="order-timerbar"><i id="orderTimerBar" style="width:100%"></i></div>
+          <div class="order-route" id="orderRoute">—</div>
+          <div class="order-meta">
+            <div class="row">📦 <b id="orderCargo">—</b></div>
+            <div class="row">📍 <b id="orderDist">—</b></div>
+            <div class="row">💰 <b id="orderPay">—</b></div>
+          </div>
+          <div class="order-actions">
+            <button type="button" class="decline" onclick="declineOrder(false)">Rad etish</button>
+            <button type="button" class="accept" onclick="acceptOrder()">Qabul qilish</button>
+          </div>
+        </div>
+      </div>
+
       <div class="tabbar" id="tabbar" style="display:none">
         <button type="button" class="tab active" data-tab="home" onclick="showScreen('home')">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>
@@ -698,6 +748,13 @@
       </div>
     </div>
     <p class="ap-note">O‘ngdagi status panelida <b>Old / Pauza / Off</b> tugmalaridan birini bossangiz — bu yerdagi holat ham darhol yangilanadi. Aynan shunday belgi rahbariyat Fleet-panelidagi mashina ro‘yxatida ko‘radi.</p>
+
+    <div class="ap-dispatch">
+      <p class="section-label" style="margin-bottom:8px">Yangi buyurtma yuborish (admin)</p>
+      <input type="text" id="orderRouteInput" class="ap-input" value="Samarqand → Buxoro">
+      <button type="button" class="cta" onclick="pushNewOrder()">📤 Buyurtmani yuborish</button>
+      <p class="ap-note" style="margin-top:8px">Yuborilgach, haydovchi ilovasida to‘liq ekranli so‘rov chiqadi — u yerda <b>Qabul qilish</b> yoki <b>Rad etish</b> tugmasi bo‘ladi.</p>
+    </div>
   </div>
 
 </div>
@@ -746,6 +803,64 @@
     if(document.getElementById('otpConfirmBtn').disabled) return;
     document.getElementById('tabbar').style.display = 'flex';
     showScreen('home');
+  }
+
+  /* ===== incoming order (admin -> driver) ===== */
+  var pendingOrder = null;
+  var orderCountdownTimer = null;
+
+  function pushNewOrder(){
+    var route = document.getElementById('orderRouteInput').value.trim() || 'Samarqand → Buxoro';
+    pendingOrder = {
+      route: route,
+      cargo: 'Sement · 8 t',
+      dist: '215 km · ~3 soat',
+      pay: '480 000 so‘m'
+    };
+    document.getElementById('orderRoute').textContent = pendingOrder.route;
+    document.getElementById('orderCargo').textContent = pendingOrder.cargo;
+    document.getElementById('orderDist').textContent = pendingOrder.dist;
+    document.getElementById('orderPay').textContent = pendingOrder.pay;
+    document.getElementById('orderOverlay').classList.add('open');
+    startOrderCountdown(20);
+  }
+
+  function startOrderCountdown(seconds){
+    clearInterval(orderCountdownTimer);
+    var timeLeft = seconds;
+    var total = seconds;
+    updateOrderCountdown(timeLeft, total);
+    orderCountdownTimer = setInterval(function(){
+      timeLeft--;
+      updateOrderCountdown(timeLeft, total);
+      if(timeLeft <= 0){
+        clearInterval(orderCountdownTimer);
+        declineOrder(true);
+      }
+    }, 1000);
+  }
+
+  function updateOrderCountdown(timeLeft, total){
+    document.getElementById('orderTimer').textContent = Math.max(0, timeLeft) + 's';
+    document.getElementById('orderTimerBar').style.width = Math.max(0, (timeLeft / total) * 100) + '%';
+  }
+
+  function acceptOrder(){
+    clearInterval(orderCountdownTimer);
+    document.getElementById('orderOverlay').classList.remove('open');
+    if(pendingOrder){
+      document.querySelector('.trip-float .route').textContent = pendingOrder.route;
+      document.getElementById('tripFloatSub').textContent = '🧭 Navigatsiya faol · ' + pendingOrder.dist;
+    }
+    pendingOrder = null;
+    applyDriverStatus('start');
+    showScreen('home');
+  }
+
+  function declineOrder(auto){
+    clearInterval(orderCountdownTimer);
+    document.getElementById('orderOverlay').classList.remove('open');
+    pendingOrder = null;
   }
 
   function logout(){
