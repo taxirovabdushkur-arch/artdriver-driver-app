@@ -299,7 +299,10 @@
 
   /* ---- Buyurtmalar (orders) module ---- */
   .order-list{ display:flex; flex-direction:column; gap:10px; }
-  .order-card-item{ background:var(--panel-2); border:1px solid var(--divider); border-radius:14px; padding:13px 14px; }
+  .order-card-item{
+    display:block; width:100%; text-align:left; cursor:pointer; font-family:inherit; color:inherit;
+    background:var(--panel-2); border:1px solid var(--divider); border-radius:14px; padding:13px 14px;
+  }
   .order-card-item.new{ border-color:var(--amber); background:#f2a93c14; }
   .oc-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
   .oc-number{ font-size:11px; font-weight:700; color:var(--steel-dim); font-variant-numeric:tabular-nums; }
@@ -310,6 +313,13 @@
   .oc-chip.queued{ background:#26466a; color:var(--steel); }
   .oc-chip.done{ background:#173a2a; color:var(--green); }
   .oc-chip.new{ background:#3d3115; color:var(--amber); }
+
+  .order-view{ display:none; flex-direction:column; height:100%; }
+  .order-view.active{ display:flex; }
+  .order-detail-meta{ display:flex; flex-direction:column; gap:8px; margin-bottom:6px; }
+  .order-cargo-card{ background:var(--panel-2); border:1px solid var(--divider); border-radius:14px; padding:14px; }
+  .oc-cargo-name{ font-size:14px; font-weight:800; margin-bottom:8px; }
+  .oc-cargo-desc{ margin:0; font-size:12.5px; color:var(--steel); line-height:1.6; }
 
   /* ---- Hisobot -> Xarajatlar entry card ---- */
   .nav-card{
@@ -561,13 +571,41 @@
 
         <!-- ===== ORDERS (Buyurtmalar) ===== -->
         <div class="screen" id="screen-orders">
-          <div class="chat-head">
-            <h3>Buyurtmalar</h3>
-            <p>Yangi va rejalashtirilgan reyslar</p>
+
+          <div class="order-view active" id="orderListView">
+            <div class="chat-head">
+              <h3>Buyurtmalar</h3>
+              <p>Yangi va rejalashtirilgan reyslar</p>
+            </div>
+            <div class="scroll">
+              <div class="order-list" id="orderList"></div>
+            </div>
           </div>
-          <div class="scroll">
-            <div class="order-list" id="orderList"></div>
+
+          <div class="order-view" id="orderDetailView">
+            <div class="exp-header">
+              <button type="button" class="back-btn" onclick="showOrdersView('list')" aria-label="Orqaga">←</button>
+              <h3>Buyurtma tafsiloti</h3>
+              <span style="width:34px"></span>
+            </div>
+            <div class="scroll">
+              <div class="oc-top" style="margin-bottom:14px">
+                <span class="oc-number" id="odNumber">—</span>
+                <span class="oc-chip" id="odChip">—</span>
+              </div>
+              <div class="order-detail-meta">
+                <div class="row">📍 <b id="odFrom">—</b></div>
+                <div class="row">🏁 <b id="odTo">—</b></div>
+                <div class="row">📅 <b id="odDate">—</b></div>
+              </div>
+              <p class="section-label" style="margin-top:18px">Yuk haqida</p>
+              <div class="order-cargo-card">
+                <div class="oc-cargo-name" id="odCargoName">—</div>
+                <p class="oc-cargo-desc" id="odCargoDesc">—</p>
+              </div>
+            </div>
           </div>
+
         </div>
 
         <!-- ===== CHAT (Telegram-style) ===== -->
@@ -770,6 +808,10 @@
       <input type="datetime-local" id="orderStartInput" class="ap-input">
       <label class="field-label">Tugash sanasi</label>
       <input type="datetime-local" id="orderEndInput" class="ap-input">
+      <label class="field-label">Yuk nomi</label>
+      <input type="text" id="orderCargoInput" class="ap-input" value="Sement" placeholder="Masalan: Qurilish g‘ishti">
+      <label class="field-label">To‘liq tavsif</label>
+      <textarea id="orderDescInput" class="expense-textarea" rows="2" placeholder="Yuk haqida batafsil ma’lumot…">8 t sement, quruq ombordan olinadi. Namlikdan ehtiyot bo‘lish kerak.</textarea>
       <button type="button" class="cta" onclick="pushNewOrder()">👁 Ko‘rish uchun yuborish</button>
       <p class="ap-note" style="margin-top:8px">Yuborilgach, haydovchiga «Sizda yangi buyurtma bor!» degan bildirishnoma chiqadi va buyurtma xuddi xabar-bildirishnoma kabi <b>Buyurtmalar</b> bo‘limiga tushadi — qabul qilish shart emas, u shunchaki ro‘yxatda ko‘rinadi.</p>
     </div>
@@ -837,11 +879,20 @@
   }
 
   var ORDERS = [
-    { id:1, number:'#1001', from:'Toshkent, Sergeli tumani', to:'Andijon shahri', status:'done', startAt:'21-iyul, 06:20', endAt:'21-iyul, 09:45' },
-    { id:2, number:'#1002', from:'Samarqand, g‘isht zavodi', to:'Buxoro, qurilish bozori', status:'queued', startAt:'21-iyul, 16:00', endAt:'21-iyul, 19:30' }
+    { id:1, number:'#1001', from:'Toshkent, Sergeli tumani', to:'Andijon shahri', status:'done', startAt:'21-iyul, 06:20', endAt:'21-iyul, 09:45',
+      cargo:'Qurilish g‘ishti', desc:'1200 dona silikat g‘isht, paletlarda joylashtirilgan. Tushirish uchun forklift kerak.' },
+    { id:2, number:'#1002', from:'Samarqand, g‘isht zavodi', to:'Buxoro, qurilish bozori', status:'queued', startAt:'21-iyul, 16:00', endAt:'21-iyul, 19:30',
+      cargo:'G‘isht · 6 t', desc:'Qurilish g‘ishti, quruq holatda. Yomg‘irdan yopiq brezent bilan tashish tavsiya etiladi.' }
   ];
   var orderIdCounter = 3;
   var toastTimer = null;
+
+  function orderChipInfo(status){
+    return {
+      cls: status === 'done' ? 'done' : (status === 'new' ? 'new' : 'queued'),
+      text: status === 'done' ? 'Bajarildi' : (status === 'new' ? 'Yangi' : 'Navbatda')
+    };
+  }
 
   function renderOrders(){
     var list = document.getElementById('orderList');
@@ -851,24 +902,47 @@
       return;
     }
     ORDERS.forEach(function(o){
-      var card = document.createElement('div');
+      var card = document.createElement('button');
+      card.type = 'button';
       card.className = 'order-card-item' + (o.status === 'new' ? ' new' : '');
 
-      var chipClass = o.status === 'done' ? 'done' : (o.status === 'new' ? 'new' : 'queued');
-      var chipText = o.status === 'done' ? 'Bajarildi' : (o.status === 'new' ? 'Yangi' : 'Navbatda');
+      var chip = orderChipInfo(o.status);
 
       card.innerHTML =
-        '<div class="oc-top"><span class="oc-number">' + o.number + '</span><span class="oc-chip ' + chipClass + '">' + chipText + '</span></div>' +
+        '<div class="oc-top"><span class="oc-number">' + o.number + '</span><span class="oc-chip ' + chip.cls + '">' + chip.text + '</span></div>' +
         '<div class="oc-meta">' +
           '<div class="row">📍 <b>' + o.from + '</b></div>' +
           '<div class="row">🏁 <b>' + o.to + '</b></div>' +
           '<div class="row">📅 <b>' + o.startAt + ' — ' + o.endAt + '</b></div>' +
         '</div>';
+      card.onclick = function(){ openOrderDetail(o.id); };
       list.appendChild(card);
     });
   }
 
+  function showOrdersView(view){
+    document.querySelectorAll('.order-view').forEach(function(v){ v.classList.remove('active'); });
+    document.getElementById(view === 'detail' ? 'orderDetailView' : 'orderListView').classList.add('active');
+  }
+
+  function openOrderDetail(id){
+    var o = ORDERS.find(function(x){ return x.id === id; });
+    if(!o) return;
+    var chip = orderChipInfo(o.status);
+    document.getElementById('odNumber').textContent = o.number;
+    var chipEl = document.getElementById('odChip');
+    chipEl.className = 'oc-chip ' + chip.cls;
+    chipEl.textContent = chip.text;
+    document.getElementById('odFrom').textContent = o.from;
+    document.getElementById('odTo').textContent = o.to;
+    document.getElementById('odDate').textContent = o.startAt + ' — ' + o.endAt;
+    document.getElementById('odCargoName').textContent = o.cargo || 'Yuk turi ko‘rsatilmagan';
+    document.getElementById('odCargoDesc').textContent = o.desc || 'Qo‘shimcha tavsif kiritilmagan.';
+    showOrdersView('detail');
+  }
+
   function openOrdersScreen(){
+    showOrdersView('list');
     renderOrders();
     var hadNew = ORDERS.some(function(o){ return o.status === 'new'; });
     if(hadNew){
@@ -906,6 +980,8 @@
     var to = document.getElementById('orderToInput').value.trim() || 'Buxoro';
     var startAt = formatOrderDate(document.getElementById('orderStartInput').value) || 'Bugun, 16:00';
     var endAt = formatOrderDate(document.getElementById('orderEndInput').value) || 'Bugun, 20:00';
+    var cargo = document.getElementById('orderCargoInput').value.trim() || 'Yuk turi ko‘rsatilmagan';
+    var desc = document.getElementById('orderDescInput').value.trim() || 'Qo‘shimcha tavsif kiritilmagan.';
     var id = orderIdCounter++;
     ORDERS.unshift({
       id: id,
@@ -914,7 +990,9 @@
       to: to,
       status: 'new',
       startAt: startAt,
-      endAt: endAt
+      endAt: endAt,
+      cargo: cargo,
+      desc: desc
     });
     renderOrders();
     updateOrdersBadge();
