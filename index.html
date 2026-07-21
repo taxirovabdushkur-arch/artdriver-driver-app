@@ -302,8 +302,7 @@
   .order-card-item{ background:var(--panel-2); border:1px solid var(--divider); border-radius:14px; padding:13px 14px; }
   .order-card-item.new{ border-color:var(--amber); background:#f2a93c14; }
   .oc-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
-  .oc-tag{ font-size:9.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--amber); }
-  .oc-route{ font-size:14px; font-weight:800; }
+  .oc-number{ font-size:11px; font-weight:700; color:var(--steel-dim); font-variant-numeric:tabular-nums; }
   .oc-meta{ display:flex; flex-direction:column; gap:4px; margin:6px 0 10px; }
   .oc-meta .row{ font-size:12px; color:var(--steel); display:flex; align-items:center; gap:6px; }
   .oc-meta .row b{ color:var(--ice); font-weight:700; }
@@ -763,7 +762,10 @@
 
     <div class="ap-dispatch">
       <p class="section-label" style="margin-bottom:8px">Yangi buyurtma yuborish (admin)</p>
-      <input type="text" id="orderRouteInput" class="ap-input" value="Samarqand → Buxoro" placeholder="Marshrut">
+      <label class="field-label">Qayerdan</label>
+      <input type="text" id="orderFromInput" class="ap-input" value="Samarqand, g‘isht zavodi" placeholder="Manzil">
+      <label class="field-label">Qayerga</label>
+      <input type="text" id="orderToInput" class="ap-input" value="Buxoro, qurilish bozori" placeholder="Manzil">
       <label class="field-label">Boshlanish sanasi</label>
       <input type="datetime-local" id="orderStartInput" class="ap-input">
       <label class="field-label">Tugash sanasi</label>
@@ -835,8 +837,8 @@
   }
 
   var ORDERS = [
-    { id:1, route:'Toshkent → Andijon', cargo:null, dist:null, pay:null, status:'done', startAt:'21-iyul, 06:20', endAt:'21-iyul, 09:45' },
-    { id:2, route:'Samarqand → Buxoro', cargo:'G‘isht · 6 t', dist:'120 km · ~2 soat', pay:'260 000 so‘m', status:'queued', startAt:'21-iyul, 16:00', endAt:'21-iyul, 19:30' }
+    { id:1, number:'#1001', from:'Toshkent, Sergeli tumani', to:'Andijon shahri', status:'done', startAt:'21-iyul, 06:20', endAt:'21-iyul, 09:45' },
+    { id:2, number:'#1002', from:'Samarqand, g‘isht zavodi', to:'Buxoro, qurilish bozori', status:'queued', startAt:'21-iyul, 16:00', endAt:'21-iyul, 19:30' }
   ];
   var orderIdCounter = 3;
   var toastTimer = null;
@@ -851,19 +853,17 @@
     ORDERS.forEach(function(o){
       var card = document.createElement('div');
       card.className = 'order-card-item' + (o.status === 'new' ? ' new' : '');
-      var dateRow = '<div class="row">📅 <b>' + o.startAt + ' — ' + o.endAt + '</b></div>';
 
       var chipClass = o.status === 'done' ? 'done' : (o.status === 'new' ? 'new' : 'queued');
       var chipText = o.status === 'done' ? 'Bajarildi' : (o.status === 'new' ? 'Yangi' : 'Navbatda');
 
-      var metaRows = dateRow;
-      if(o.cargo) metaRows = '<div class="row">📦 <b>' + o.cargo + '</b></div>' + metaRows;
-      if(o.dist)  metaRows = metaRows.replace(dateRow, '<div class="row">📍 <b>' + o.dist + '</b></div>' + dateRow);
-      if(o.pay)   metaRows = metaRows.replace(dateRow, '<div class="row">💰 <b>' + o.pay + '</b></div>' + dateRow);
-
       card.innerHTML =
-        '<div class="oc-top"><div class="oc-route">' + o.route + '</div><span class="oc-chip ' + chipClass + '">' + chipText + '</span></div>' +
-        '<div class="oc-meta">' + metaRows + '</div>';
+        '<div class="oc-top"><span class="oc-number">' + o.number + '</span><span class="oc-chip ' + chipClass + '">' + chipText + '</span></div>' +
+        '<div class="oc-meta">' +
+          '<div class="row">📍 <b>' + o.from + '</b></div>' +
+          '<div class="row">🏁 <b>' + o.to + '</b></div>' +
+          '<div class="row">📅 <b>' + o.startAt + ' — ' + o.endAt + '</b></div>' +
+        '</div>';
       list.appendChild(card);
     });
   }
@@ -902,15 +902,16 @@
   }
 
   function pushNewOrder(){
-    var route = document.getElementById('orderRouteInput').value.trim() || 'Samarqand → Buxoro';
+    var from = document.getElementById('orderFromInput').value.trim() || 'Samarqand';
+    var to = document.getElementById('orderToInput').value.trim() || 'Buxoro';
     var startAt = formatOrderDate(document.getElementById('orderStartInput').value) || 'Bugun, 16:00';
     var endAt = formatOrderDate(document.getElementById('orderEndInput').value) || 'Bugun, 20:00';
+    var id = orderIdCounter++;
     ORDERS.unshift({
-      id: orderIdCounter++,
-      route: route,
-      cargo: 'Sement · 8 t',
-      dist: '215 km · ~3 soat',
-      pay: '480 000 so‘m',
+      id: id,
+      number: '#' + (1000 + id),
+      from: from,
+      to: to,
       status: 'new',
       startAt: startAt,
       endAt: endAt
