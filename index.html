@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Artdriver — Haydovchi ilovasi (interaktiv maket)</title>
-<meta name="description" content="Artdriver haydovchi ilovasining interaktiv maketi: avtorizatsiya, to'liq ekran xarita, smena statusi, Telegram uslubidagi chat va xarajatlar moduli.">
+<meta name="description" content="Artdriver haydovchi ilovasining interaktiv maketi: avtorizatsiya, marshrut (borish-qaytish), smena statusi va Telegram uslubidagi chat.">
 <style>
   :root{
     --bg:#08192b;
@@ -138,6 +138,8 @@
     display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12.5px; flex:0 0 auto; z-index:1;
   }
   .route-stop.active .letter{ background:var(--amber); color:#2a1c05; border-color:var(--amber); }
+  .route-stop.return .letter{ border-style:dashed; color:var(--steel-dim); font-size:14px; }
+  .route-stop.return .addr{ color:var(--steel); }
   .route-stop .addr{ font-size:13.5px; font-weight:700; padding-top:4px; }
 
   .status-row{ display:flex; gap:10px; }
@@ -313,21 +315,6 @@
   .oc-cargo-name{ font-size:14px; font-weight:800; margin-bottom:8px; }
   .oc-cargo-desc{ margin:0; font-size:12.5px; color:var(--steel); line-height:1.6; }
 
-  /* ---- Hisobot -> Xarajatlar entry card ---- */
-  .nav-card{
-    width:100%; display:flex; align-items:center; gap:12px; text-align:left;
-    background:var(--panel-2); border:1px solid var(--divider); border-radius:14px;
-    padding:13px 14px; margin-bottom:18px; cursor:pointer; color:var(--ice); font-family:inherit;
-  }
-  .nc-icon{ width:38px; height:38px; border-radius:10px; background:var(--field); display:flex; align-items:center; justify-content:center; font-size:17px; flex:0 0 auto; }
-  .nc-body{ flex:1; min-width:0; }
-  .nc-title{ font-size:13.5px; font-weight:800; }
-  .nc-sub{ font-size:11px; color:var(--steel-dim); margin-top:2px; }
-  .nc-chev{ color:var(--steel-dim); font-size:14px; }
-
-  /* ---- Xarajatlar module (own screen) ---- */
-  .exp-view{ display:none; flex-direction:column; height:100%; }
-  .exp-view.active{ display:flex; }
   .exp-header{ display:flex; align-items:center; justify-content:space-between; padding:14px; border-bottom:1px solid var(--divider); flex:0 0 auto; }
   .exp-header h3{ margin:0; font-size:15px; font-weight:800; }
   .back-btn{
@@ -335,32 +322,10 @@
     color:var(--ice); font-size:15px; display:flex; align-items:center; justify-content:center; cursor:pointer; flex:0 0 auto;
   }
 
-  .add-expense-top{
-    width:100%; border:0; background:var(--amber); color:#2a1c05; font-weight:800; font-size:13.5px;
-    padding:13px 0; border-radius:12px; margin-bottom:16px; cursor:pointer;
-  }
-
-  .expense-list{ display:flex; flex-direction:column; gap:9px; margin-bottom:12px; }
-  .expense-item{ display:flex; align-items:center; gap:10px; background:var(--panel-2); border:1px solid var(--divider); border-radius:12px; padding:9px 10px; }
-  .expense-item img{ width:42px; height:42px; border-radius:9px; object-fit:cover; flex:0 0 auto; }
-  .expense-item .exp-icon{ width:42px; height:42px; border-radius:9px; background:var(--field); display:flex; align-items:center; justify-content:center; font-size:18px; flex:0 0 auto; }
-  .exp-body{ flex:1; min-width:0; }
-  .exp-title{ font-size:12.5px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .exp-sub{ font-size:10.5px; color:var(--steel-dim); margin-top:2px; }
-  .expense-item .locked{ font-size:12px; color:var(--steel-dim); flex:0 0 auto; }
   .exp-empty{ font-size:12.5px; color:var(--steel-dim); text-align:center; padding:30px 10px; }
+  .exp-hint{ font-size:11px; color:var(--steel-dim); text-align:center; margin-top:10px; }
 
   .field-label{ display:block; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--steel-dim); margin-bottom:8px; }
-
-  .photo-drop{
-    border:1.6px dashed var(--field-border); border-radius:14px; padding:28px 14px;
-    display:flex; flex-direction:column; align-items:center; gap:8px;
-    color:var(--steel); font-size:12.5px; font-weight:700; cursor:pointer;
-    background:var(--panel-2); margin-bottom:18px; overflow:hidden;
-  }
-  .photo-drop .icon{ font-size:26px; }
-  .photo-drop.has-photo{ padding:0; border-style:solid; }
-  .photo-drop img{ width:100%; height:160px; object-fit:cover; display:block; }
 
   .expense-textarea{
     width:100%; background:var(--field); border:1.6px solid var(--field-border); border-radius:12px;
@@ -373,9 +338,6 @@
     font-size:14.5px; font-weight:800; display:flex; align-items:center; justify-content:center; cursor:pointer;
   }
   .cta:disabled{ background:var(--field); color:var(--steel-dim); cursor:not-allowed; }
-  .inline-cta{ height:44px; font-size:13px; margin-top:2px; }
-
-  .exp-hint{ font-size:11px; color:var(--steel-dim); text-align:center; margin-top:10px; }
 
   /* ---- Pauza / Off sabab varag'i (accordion) ---- */
   .sheet-backdrop{
@@ -403,7 +365,6 @@
   .reason-pill.selected .radio::after{ content:""; position:absolute; inset:3px; border-radius:50%; background:var(--amber); }
 
   .reason-extra{ display:none; padding:10px 4px 2px 4px; flex-direction:column; gap:8px; }
-  .expense-note{ margin:0; font-size:12px; color:var(--steel); line-height:1.4; }
 
   .duration-picker{ display:flex; flex-direction:column; gap:8px; }
   .duration-chip{
@@ -555,6 +516,7 @@
               <div class="order-detail-meta">
                 <div class="row">📍 <b id="odFrom">—</b></div>
                 <div class="row">🏁 <b id="odTo">—</b></div>
+                <div class="row">↩ <b id="odReturn">—</b></div>
                 <div class="row">📅 <b id="odDate">—</b></div>
               </div>
               <p class="section-label" style="margin-top:18px">Yuk haqida</p>
@@ -611,14 +573,7 @@
               <div class="stat-card"><div class="v">96%</div><div class="l">Vaqtida yetkazish</div></div>
             </div>
 
-            <button type="button" class="nav-card" onclick="showScreen('expenses','report')">
-              <span class="nc-icon">🧾</span>
-              <span class="nc-body">
-                <span class="nc-title">Xarajatlar</span>
-                <span class="nc-sub">2 ta yozuv · tarixni ko‘rish</span>
-              </span>
-              <span class="nc-chev">›</span>
-            </button>
+            <p class="exp-hint" style="margin:2px 0 18px;text-align:left;">Ko‘rsatkichlar avtomatik hisoblanadi: har bir borish-qaytish reysi yakunlangach km va reyslar soni yangilanadi.</p>
 
             <p class="section-label">Kunlik masofa (7 kun)</p>
             <div class="bars">
@@ -632,61 +587,6 @@
             </div>
             <div class="bar-labels"><span>D</span><span>S</span><span>Ch</span><span>P</span><span>J</span><span>Sh</span><span>Ya</span></div>
           </div>
-        </div>
-
-        <!-- ===== EXPENSES (alohida modul) ===== -->
-        <div class="screen" id="screen-expenses">
-
-          <div class="exp-view active" id="expenseListView">
-            <div class="exp-header">
-              <button type="button" class="back-btn" onclick="showScreen('report')" aria-label="Orqaga">←</button>
-              <h3>Xarajatlar tarixi</h3>
-              <span style="width:34px"></span>
-            </div>
-            <div class="scroll">
-              <button type="button" class="add-expense-top" onclick="showExpenseView('add')">+ Xarajat qo‘shish</button>
-              <div class="expense-list" id="expenseList">
-                <div class="expense-item">
-                  <div class="exp-icon">🧾</div>
-                  <div class="exp-body">
-                    <div class="exp-title">Yoqilg‘i cheki</div>
-                    <div class="exp-sub">11-iyul, 09:40</div>
-                  </div>
-                  <span class="locked" title="O‘zgartirib bo‘lmaydi">🔒</span>
-                </div>
-                <div class="expense-item">
-                  <div class="exp-icon">🧾</div>
-                  <div class="exp-body">
-                    <div class="exp-title">Yo‘l yig‘imi</div>
-                    <div class="exp-sub">9-iyul, 15:12</div>
-                  </div>
-                  <span class="locked" title="O‘zgartirib bo‘lmaydi">🔒</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="exp-view" id="expenseAddView">
-            <div class="exp-header">
-              <button type="button" class="back-btn" onclick="showExpenseView('list')" aria-label="Bekor qilish">←</button>
-              <h3>Yangi xarajat</h3>
-              <span style="width:34px"></span>
-            </div>
-            <div class="scroll">
-              <label class="field-label">Chek surati</label>
-              <div class="photo-drop" id="photoDrop" onclick="document.getElementById('receiptInput').click()">
-                <span class="icon">📷</span>
-                <span>Surat olish uchun bosing</span>
-              </div>
-
-              <label class="field-label">Tavsif</label>
-              <textarea id="expenseDesc" class="expense-textarea" rows="3" placeholder="Masalan: Yoqilg‘i, yo‘l yig‘imi, avtoservis…" oninput="updateSaveState()"></textarea>
-
-              <button type="button" class="cta" id="saveExpenseBtn" onclick="saveExpense()" disabled>Saqlash</button>
-              <p class="exp-hint">Saqlangandan so‘ng xarajatni o‘zgartirib yoki o‘chirib bo‘lmaydi.</p>
-            </div>
-          </div>
-
         </div>
 
         <!-- ===== PROFILE ===== -->
@@ -780,7 +680,6 @@
 
 <p class="caption">Ilova avtorizatsiyadan boshlanadi (telefon → OTP), so‘ng haydovchi Bosh sahifaga tushadi. Pauza/Off sabablari endi ro‘yxatdagi tanlangan variant ostida ochiladi. «Chat» — hamkasblar ro‘yxati bilan Telegram uslubidagi suhbat: birortasini tanlab, real xabar yozib jo‘natish mumkin.</p>
 
-<input type="file" id="receiptInput" accept="image/*" capture="environment" style="display:none" onchange="handleReceiptPhoto(event)">
 
 <script>
   /* ===== navigation ===== */
@@ -791,7 +690,6 @@
     document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
     var tabBtn = document.querySelector('.tab[data-tab="'+tabId+'"]');
     if(tabBtn) tabBtn.classList.add('active');
-    if(id === 'expenses') showExpenseView('list');
     if(id === 'chat') showChatView('contacts');
     if(id === 'orders') openOrdersScreen();
     if(id === 'home') renderHomeRoute();
@@ -895,6 +793,7 @@
     chipEl.textContent = chip.text;
     document.getElementById('odFrom').textContent = o.from;
     document.getElementById('odTo').textContent = o.to;
+    document.getElementById('odReturn').textContent = 'Qaytish: ' + o.from;
     document.getElementById('odDate').textContent = o.startAt + ' — ' + o.endAt;
     document.getElementById('odCargoName').textContent = o.cargo || 'Yuk turi ko‘rsatilmagan';
     document.getElementById('odCargoDesc').textContent = o.desc || 'Qo‘shimcha tavsif kiritilmagan.';
@@ -979,7 +878,7 @@
   var REASON_CONFIG = {
     pause: [
       { label:'Dam olish',        type:'rest' },
-      { label:'Yoqilg‘i quyish',  type:'expense' },
+      { label:'Yoqilg‘i quyish',  type:'none' },
       { label:'Ovqatlanish',      type:'meal' },
       { label:'Texnik to‘xtash',  type:'text' },
       { label:'Boshqa',           type:'text' }
@@ -1066,6 +965,7 @@
       '<div class="route-stops">' +
         '<div class="route-stop' + (currentDriverStatus === 'start' ? ' active' : '') + '"><span class="letter">A</span><span class="addr">' + o.from + '</span></div>' +
         '<div class="route-stop"><span class="letter">B</span><span class="addr">' + o.to + '</span></div>' +
+        '<div class="route-stop return"><span class="letter">↩</span><span class="addr">Qaytish: ' + o.from + '</span></div>' +
       '</div>';
   }
 
@@ -1137,19 +1037,6 @@
       ta.placeholder = 'Sababni yozing…';
       ta.oninput = function(){ document.getElementById('reasonConfirm').disabled = !ta.value.trim(); };
       extra.appendChild(ta);
-    } else if(cfg.type === 'expense'){
-      extra.style.display = 'flex';
-      document.getElementById('reasonConfirm').style.display = 'none';
-      var note = document.createElement('p');
-      note.className = 'expense-note';
-      note.textContent = 'Yoqilg‘i cheki xarajat sifatida saqlanadi.';
-      var goBtn = document.createElement('button');
-      goBtn.type = 'button';
-      goBtn.className = 'cta inline-cta';
-      goBtn.textContent = '🧾 Xarajat qo‘shish';
-      goBtn.onclick = confirmExpenseReason;
-      extra.appendChild(note);
-      extra.appendChild(goBtn);
     } else {
       document.getElementById('reasonConfirm').disabled = false;
     }
@@ -1218,101 +1105,6 @@
     document.getElementById('sheetBackdrop').classList.remove('open');
   }
 
-  function confirmExpenseReason(){
-    if(!pendingReasonState) return;
-    applyDriverStatus(pendingReasonState, 'Yoqilg‘i quyish');
-    document.getElementById('sheetBackdrop').classList.remove('open');
-    goToAddExpense('Yoqilg‘i quyish');
-  }
-
-  /* ===== EXPENSES module ===== */
-  function showExpenseView(view){
-    document.querySelectorAll('.exp-view').forEach(function(v){ v.classList.remove('active'); });
-    document.getElementById(view === 'add' ? 'expenseAddView' : 'expenseListView').classList.add('active');
-  }
-
-  function goToAddExpense(prefill){
-    showScreen('expenses', 'report');
-    showExpenseView('add');
-    if(prefill){
-      var d = document.getElementById('expenseDesc');
-      d.value = prefill;
-      updateSaveState();
-    }
-  }
-
-  var pendingExpensePhoto = null;
-
-  function handleReceiptPhoto(evt){
-    var file = evt.target.files && evt.target.files[0];
-    if(!file) return;
-    var reader = new FileReader();
-    reader.onload = function(e){
-      pendingExpensePhoto = e.target.result;
-      var drop = document.getElementById('photoDrop');
-      drop.classList.add('has-photo');
-      drop.innerHTML = '';
-      var img = document.createElement('img');
-      img.src = pendingExpensePhoto;
-      img.alt = 'Chek surati';
-      drop.appendChild(img);
-      updateSaveState();
-    };
-    reader.readAsDataURL(file);
-    evt.target.value = '';
-  }
-
-  function updateSaveState(){
-    var desc = document.getElementById('expenseDesc').value.trim();
-    document.getElementById('saveExpenseBtn').disabled = !(pendingExpensePhoto && desc);
-  }
-
-  function resetExpenseForm(){
-    pendingExpensePhoto = null;
-    document.getElementById('expenseDesc').value = '';
-    document.getElementById('saveExpenseBtn').disabled = true;
-    var drop = document.getElementById('photoDrop');
-    drop.classList.remove('has-photo');
-    drop.innerHTML = '<span class="icon">📷</span><span>Surat olish uchun bosing</span>';
-  }
-
-  function saveExpense(){
-    var desc = document.getElementById('expenseDesc').value.trim();
-    if(!pendingExpensePhoto || !desc) return;
-
-    var list = document.getElementById('expenseList');
-    var item = document.createElement('div');
-    item.className = 'expense-item';
-
-    var img = document.createElement('img');
-    img.src = pendingExpensePhoto;
-    img.alt = 'Chek surati';
-
-    var body = document.createElement('div');
-    body.className = 'exp-body';
-    var title = document.createElement('div');
-    title.className = 'exp-title';
-    title.textContent = desc;
-    var sub = document.createElement('div');
-    sub.className = 'exp-sub';
-    sub.textContent = 'Hozir qo‘shildi';
-    body.appendChild(title);
-    body.appendChild(sub);
-
-    var lock = document.createElement('span');
-    lock.className = 'locked';
-    lock.title = 'O‘zgartirib bo‘lmaydi';
-    lock.textContent = '🔒';
-
-    item.appendChild(img);
-    item.appendChild(body);
-    item.appendChild(lock);
-    list.insertBefore(item, list.firstChild);
-
-    resetExpenseForm();
-    showExpenseView('list');
-  }
-
   /* ===== CHAT (Telegram-style) ===== */
   var CONTACTS = [
     { id:'nodira', name:'Nodira Yusupova', role:'Dispetcher', unread:0, messages:[
@@ -1321,7 +1113,7 @@
       { from:'recv', text:'Yo‘lda muammo bo‘lsa, shu yerga yozing.', time:'10:15' }
     ]},
     { id:'umid', name:'Umid Nazarov', role:'Menejer', unread:1, messages:[
-      { from:'recv', text:'Assalomu alaykum. Iltimos, o‘tgan reys uchun yoqilg‘i chekini yuklab qo‘ying.', time:'09:20' }
+      { from:'recv', text:'Assalomu alaykum. O‘tgan reys yaxshi yakunlandi, rahmat!', time:'09:20' }
     ]},
     { id:'sardor', name:'Sardor Aliyev', role:'Haydovchi', unread:1, messages:[
       { from:'recv', text:'Salom! Siz ham shu marshrutdamisiz?', time:'Kecha' }
