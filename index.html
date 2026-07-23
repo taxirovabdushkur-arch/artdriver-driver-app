@@ -7,25 +7,25 @@
 <meta name="description" content="Artdriver haydovchi ilovasining interaktiv maketi: avtorizatsiya, marshrut (borish-qaytish), smena statusi va Telegram uslubidagi chat.">
 <style>
   :root{
-    --bg:#08192b;
-    --panel:#0e2c47;
-    --panel-2:#123a5e;
-    --field:#1c4d78;
-    --field-border:#2c5d8a;
-    --ice:#f3f6f9;
-    --steel:#9fb2c4;
-    --steel-dim:#6f8aa3;
-    --amber:#f2a93c;
-    --green:#5fd08a;
-    --gray-off:#7c8b9a;
-    --divider:#1e3f60;
+    --bg:#f2f8f4;
+    --panel:#ffffff;
+    --panel-2:#eef6f0;
+    --field:#e0f0e6;
+    --field-border:#b9dcc4;
+    --ice:#16301f;
+    --steel:#4c6e59;
+    --steel-dim:#7a9c86;
+    --amber:#0e8a45;
+    --green:#17a653;
+    --gray-off:#8a9d90;
+    --divider:#d3e8da;
   }
   *{box-sizing:border-box;}
   body{
     margin:0;
     min-height:100vh;
     background:
-      radial-gradient(ellipse 900px 500px at 20% -10%, #123a5e55, transparent),
+      radial-gradient(ellipse 900px 500px at 20% -10%, #bfe8cc80, transparent),
       var(--bg);
     color:var(--ice);
     font-family:-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
@@ -78,7 +78,7 @@
 
   /* ---- AUTH (phone + OTP) ---- */
   .auth-brand{ display:flex; align-items:center; gap:8px; margin-bottom:24px; }
-  .auth-brand .mark{ width:30px; height:30px; border-radius:8px; background:var(--amber); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; color:#2a1c05; }
+  .auth-brand .mark{ width:30px; height:30px; border-radius:8px; background:var(--amber); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; color:#ffffff; }
   .auth-brand span{ font-size:12.5px; font-weight:700; letter-spacing:.04em; color:var(--steel); }
   .auth-h{ margin:0 0 8px; font-size:21px; font-weight:800; letter-spacing:-.01em; }
   .auth-sub{ margin:0 0 24px; font-size:13px; color:var(--steel); line-height:1.5; }
@@ -110,17 +110,14 @@
   .home-top{ display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:16px; }
   .greet h2{ margin:0 0 3px; font-size:18px; font-weight:800; }
   .greet p{ margin:0; font-size:12px; color:var(--steel-dim); font-weight:600; }
-  .bell{
-    width:36px; height:36px; border-radius:50%; background:var(--field); border:1px solid var(--field-border);
-    color:var(--ice); font-size:15px; display:flex; align-items:center; justify-content:center; cursor:pointer; flex:0 0 auto;
-  }
 
   .route-card{
     background:var(--panel-2); border:1px solid var(--divider); border-radius:16px; padding:18px;
     margin-bottom:16px; min-height:150px; display:flex; flex-direction:column; justify-content:center;
     transition:background .3s ease, border-color .3s ease;
   }
-  .route-card.off{ background:#050d16; border-color:#16283d; }
+  .route-card.off{ background:#0c1f15; border-color:#183a26; color:#eef6f0; }
+  .route-card.off .rc-empty-sub{ color:#a9c4b3; }
   .rc-empty{ text-align:center; padding:10px 6px; }
   .rc-empty-icon{ font-size:26px; margin-bottom:8px; }
   .rc-empty-title{ font-size:14.5px; font-weight:800; margin-bottom:4px; }
@@ -137,7 +134,7 @@
     width:28px; height:28px; border-radius:50%; background:var(--field); border:1.6px solid var(--field-border);
     display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12.5px; flex:0 0 auto; z-index:1;
   }
-  .route-stop.active .letter{ background:var(--amber); color:#2a1c05; border-color:var(--amber); }
+  .route-stop.active .letter{ background:var(--amber); color:#ffffff; border-color:var(--amber); }
   .route-stop.return .letter{ border-style:dashed; color:var(--steel-dim); font-size:14px; }
   .route-stop.return .addr{ color:var(--steel); }
   .route-stop .addr{ font-size:13.5px; font-weight:700; padding-top:4px; }
@@ -149,9 +146,9 @@
   }
   .status-btn svg{ width:18px; height:18px; }
   .status-btn span{ font-size:11px; font-weight:800; letter-spacing:.02em; }
-  .status-btn.start.active{ background:var(--green); color:#0b2a1a; border-color:var(--green); }
-  .status-btn.pause.active{ background:var(--amber); color:#2a1c05; border-color:var(--amber); }
-  .status-btn.stop.active{ background:var(--gray-off); color:#12202c; border-color:var(--gray-off); }
+  .status-btn.start.active{ background:var(--green); color:#ffffff; border-color:var(--green); }
+  .status-btn.pause.active{ background:var(--amber); color:#ffffff; border-color:var(--amber); }
+  .status-btn.stop.active{ background:var(--gray-off); color:#16261c; border-color:var(--gray-off); }
 
   /* ---- CHAT (Telegram-style contacts + thread) ---- */
   .chat-view{ display:none; flex-direction:column; height:100%; }
@@ -172,7 +169,7 @@
   .contact-preview{ font-size:11.5px; color:var(--steel); margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .contact-meta{ display:flex; flex-direction:column; align-items:flex-end; gap:6px; flex:0 0 auto; }
   .contact-time{ font-size:10px; color:var(--steel-dim); }
-  .contact-badge{ background:var(--amber); color:#2a1c05; font-size:10px; font-weight:800; border-radius:20px; min-width:16px; height:16px; display:flex; align-items:center; justify-content:center; padding:0 4px; }
+  .contact-badge{ background:var(--amber); color:#ffffff; font-size:10px; font-weight:800; border-radius:20px; min-width:16px; height:16px; display:flex; align-items:center; justify-content:center; padding:0 4px; }
 
   .thread-head{ display:flex; align-items:center; justify-content:space-between; padding:14px; border-bottom:1px solid var(--divider); flex:0 0 auto; gap:10px; }
   .thread-who{ text-align:center; flex:1; min-width:0; }
@@ -185,7 +182,7 @@
   .msg.sent{ align-self:flex-end; align-items:flex-end; }
   .msg .bubble{ padding:9px 12px; border-radius:14px; font-size:13px; line-height:1.4; }
   .msg.recv .bubble{ background:var(--field); border:1px solid var(--field-border); border-bottom-left-radius:4px; }
-  .msg.sent .bubble{ background:var(--amber); color:#2a1c05; font-weight:600; border-bottom-right-radius:4px; }
+  .msg.sent .bubble{ background:var(--amber); color:#ffffff; font-weight:600; border-bottom-right-radius:4px; }
   .msg .time{ font-size:9.5px; color:var(--steel-dim); margin-top:3px; padding:0 2px; }
   .chat-empty{ margin:auto; font-size:12.5px; color:var(--steel-dim); text-align:center; }
 
@@ -196,7 +193,7 @@
   }
   .chat-input input::placeholder{ color:var(--steel-dim); }
   .chat-input button{
-    width:40px; height:40px; border-radius:50%; border:0; background:var(--amber); color:#2a1c05;
+    width:40px; height:40px; border-radius:50%; border:0; background:var(--amber); color:#ffffff;
     display:flex; align-items:center; justify-content:center; cursor:pointer; flex:0 0 auto;
   }
 
@@ -225,7 +222,7 @@
   .prow.logout{ color:#e17b6b; font-weight:700; border-bottom:none; }
   button.prow{ background:none; border:0; border-bottom:1px solid var(--divider); width:100%; text-align:left; cursor:pointer; font-family:inherit; color:inherit; font-size:inherit; padding:14px 4px; }
 
-  .tabbar{ display:flex; border-top:1px solid var(--divider); background:#0a2338; padding:9px 6px 7px; flex:0 0 auto; position:relative; z-index:6; }
+  .tabbar{ display:flex; border-top:1px solid var(--divider); background:var(--panel); padding:9px 6px 7px; flex:0 0 auto; position:relative; z-index:6; }
   .tab{ flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; color:var(--steel-dim); background:none; border:0; cursor:pointer; font-family:inherit; }
   .tab svg{ width:21px; height:21px; stroke:var(--steel-dim); }
   .tab span{ font-size:9.5px; font-weight:700; letter-spacing:.01em; }
@@ -233,12 +230,12 @@
   .tab.active svg{ stroke:var(--amber); }
   .tab-icon-wrap{ position:relative; display:inline-flex; }
   .tab-badge{
-    display:none; position:absolute; top:-5px; right:-7px; background:var(--amber); color:#2a1c05;
+    display:none; position:absolute; top:-5px; right:-7px; background:var(--amber); color:#ffffff;
     font-size:9px; font-weight:800; min-width:14px; height:14px; border-radius:20px;
     align-items:center; justify-content:center; padding:0 3px;
   }
 
-  .home-indicator{ position:absolute; bottom:9px; left:50%; transform:translateX(-50%); width:120px; height:4px; border-radius:3px; background:#2c4562; z-index:7; pointer-events:none; }
+  .home-indicator{ position:absolute; bottom:9px; left:50%; transform:translateX(-50%); width:120px; height:4px; border-radius:3px; background:#2a3a30; z-index:7; pointer-events:none; }
 
   /* ---- ADMIN PREVIEW PANEL ---- */
   .admin-preview{
@@ -264,9 +261,9 @@
     padding:4px 10px; border-radius:20px; font-size:11px; font-weight:800;
   }
   .ap-badge .d{ width:6px; height:6px; border-radius:50%; }
-  .ap-badge.ok{ background:#173a2a; color:var(--green); } .ap-badge.ok .d{ background:var(--green); }
-  .ap-badge.warn{ background:#3d3115; color:var(--amber); } .ap-badge.warn .d{ background:var(--amber); }
-  .ap-badge.off{ background:#26313c; color:var(--gray-off); } .ap-badge.off .d{ background:var(--gray-off); }
+  .ap-badge.ok{ background:#d7f2df; color:#0e6b34; } .ap-badge.ok .d{ background:var(--green); }
+  .ap-badge.warn{ background:#eaf3ec; color:#4c7a5c; } .ap-badge.warn .d{ background:var(--amber); }
+  .ap-badge.off{ background:#eef2ef; color:#6b8074; } .ap-badge.off .d{ background:var(--gray-off); }
 
   .ap-note{ font-size:12px; color:var(--steel-dim); line-height:1.6; }
   .ap-note b{ color:var(--steel); }
@@ -297,16 +294,16 @@
     display:block; width:100%; text-align:left; cursor:pointer; font-family:inherit; color:inherit;
     background:var(--panel-2); border:1px solid var(--divider); border-radius:14px; padding:13px 14px;
   }
-  .order-card-item.new{ border-color:var(--amber); background:#f2a93c14; }
+  .order-card-item.new{ border-color:var(--amber); background:#12a45414; }
   .oc-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
   .oc-number{ font-size:11px; font-weight:700; color:var(--steel-dim); font-variant-numeric:tabular-nums; }
   .oc-meta{ display:flex; flex-direction:column; gap:4px; margin:6px 0 10px; }
   .oc-meta .row{ font-size:12px; color:var(--steel); display:flex; align-items:center; gap:6px; }
   .oc-meta .row b{ color:var(--ice); font-weight:700; }
   .oc-chip{ font-size:10px; font-weight:700; padding:4px 9px; border-radius:20px; white-space:nowrap; }
-  .oc-chip.queued{ background:#26466a; color:var(--steel); }
-  .oc-chip.done{ background:#173a2a; color:var(--green); }
-  .oc-chip.new{ background:#3d3115; color:var(--amber); }
+  .oc-chip.queued{ background:#e8eef3; color:#51687a; }
+  .oc-chip.done{ background:#d7f2df; color:#0e6b34; }
+  .oc-chip.new{ background:var(--amber); color:#ffffff; }
 
   .order-view{ display:none; flex-direction:column; height:100%; }
   .order-view.active{ display:flex; }
@@ -334,7 +331,7 @@
   .expense-textarea::placeholder{ color:var(--steel-dim); }
 
   .cta{
-    width:100%; height:50px; border-radius:13px; border:0; background:var(--amber); color:#2a1c05;
+    width:100%; height:50px; border-radius:13px; border:0; background:var(--amber); color:#ffffff;
     font-size:14.5px; font-weight:800; display:flex; align-items:center; justify-content:center; cursor:pointer;
   }
   .cta:disabled{ background:var(--field); color:var(--steel-dim); cursor:not-allowed; }
@@ -360,7 +357,7 @@
     font-size:13px; font-weight:600; cursor:pointer; text-align:left; font-family:inherit; width:100%;
   }
   .reason-pill .radio{ width:16px; height:16px; border-radius:50%; border:1.6px solid var(--steel-dim); flex:0 0 auto; position:relative; }
-  .reason-pill.selected{ border-color:var(--amber); background:#f2a93c1a; }
+  .reason-pill.selected{ border-color:var(--amber); background:#12a4541a; }
   .reason-pill.selected .radio{ border-color:var(--amber); }
   .reason-pill.selected .radio::after{ content:""; position:absolute; inset:3px; border-radius:50%; background:var(--amber); }
 
@@ -373,7 +370,7 @@
     font-size:13px; font-weight:700; cursor:pointer; font-family:inherit;
   }
   .duration-chip .dur{ font-size:11px; color:var(--steel-dim); font-weight:700; font-variant-numeric:tabular-nums; }
-  .duration-chip.selected{ border-color:var(--amber); background:#f2a93c1a; }
+  .duration-chip.selected{ border-color:var(--amber); background:#12a4541a; }
   .duration-chip.selected .dur{ color:var(--amber); }
   .deadline-line{ display:none; font-size:12.5px; color:var(--steel); text-align:center; padding:2px 0 2px; }
   .deadline-line b{ color:var(--amber); font-variant-numeric:tabular-nums; }
@@ -456,7 +453,6 @@
                 <h2>Salom, Aziz!</h2>
                 <p>MAN TGX · 01 D 789 AC</p>
               </div>
-              <button type="button" class="bell" aria-label="Bildirishnomalar">🔔</button>
             </div>
 
             <div class="route-card" id="routeCard"></div>
