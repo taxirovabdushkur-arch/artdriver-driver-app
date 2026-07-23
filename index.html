@@ -106,58 +106,50 @@
   .auth-resend .muted{ color:var(--steel-dim); }
   .auth-resend .timer{ color:var(--steel); font-weight:700; font-variant-numeric:tabular-nums; }
 
-  /* ---- HOME: full-bleed map ---- */
-  .map-stage{ position:relative; flex:1; overflow:hidden; }
-  .map-svg{ position:absolute; inset:0; width:100%; height:100%; display:block; }
-
-  .map-top{ position:absolute; top:12px; left:12px; right:12px; display:flex; align-items:center; justify-content:space-between; z-index:4; }
-  .chip-veh{ background:#08192bd9; border:1px solid var(--divider); border-radius:20px; padding:8px 13px; font-size:11px; font-weight:700; color:var(--steel); }
-  .chip-veh b{ color:var(--ice); }
-  .bell{ width:36px; height:36px; border-radius:50%; background:#08192bd9; border:1px solid var(--divider); color:var(--ice); font-size:15px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
-
-  .status-rail{
-    position:absolute; right:12px; top:50%; transform:translateY(-50%); z-index:4;
-    display:flex; flex-direction:column; gap:8px;
-    background:#08192bd9; border:1px solid var(--divider); border-radius:22px; padding:8px;
-  }
-  .rail-btn{
-    width:46px; height:46px; border-radius:15px; border:0; background:transparent; color:var(--steel-dim);
-    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer;
-  }
-  .rail-btn svg{ width:16px; height:16px; }
-  .rail-btn span{ font-size:8px; font-weight:800; letter-spacing:.02em; }
-  .rail-btn.start.active{ background:var(--green); color:#0b2a1a; }
-  .rail-btn.pause.active{ background:var(--amber); color:#2a1c05; }
-  .rail-btn.stop.active{ background:var(--gray-off); color:#12202c; }
-
-  .trip-float{
-    position:absolute; left:12px; right:70px; bottom:12px; z-index:4;
-    background:#0e2c47ee; border:1px solid var(--divider); border-radius:16px; padding:12px 13px;
-  }
-  .trip-float .route{ font-size:13.5px; font-weight:800; }
-  .trip-float .sub{ font-size:10.5px; color:var(--steel-dim); margin-top:2px; }
-  .trip-float button{
-    margin-top:9px; width:100%; border:0; background:var(--amber); color:#2a1c05; font-size:11.5px; font-weight:800;
-    padding:8px 0; border-radius:9px; cursor:pointer;
+  /* ---- HOME: route summary (no map) ---- */
+  .home-top{ display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:16px; }
+  .greet h2{ margin:0 0 3px; font-size:18px; font-weight:800; }
+  .greet p{ margin:0; font-size:12px; color:var(--steel-dim); font-weight:600; }
+  .bell{
+    width:36px; height:36px; border-radius:50%; background:var(--field); border:1px solid var(--field-border);
+    color:var(--ice); font-size:15px; display:flex; align-items:center; justify-content:center; cursor:pointer; flex:0 0 auto;
   }
 
-  .nav-banner{
-    display:none; position:absolute; top:58px; left:12px; right:12px; z-index:4;
-    background:var(--panel-2); border:1px solid var(--amber); border-radius:14px; padding:10px 12px;
-    align-items:center; gap:10px;
+  .route-card{
+    background:var(--panel-2); border:1px solid var(--divider); border-radius:16px; padding:18px;
+    margin-bottom:16px; min-height:150px; display:flex; flex-direction:column; justify-content:center;
+    transition:background .3s ease, border-color .3s ease;
   }
-  .map-stage.nav-mode .nav-banner{ display:flex; }
-  .nb-icon{ width:32px; height:32px; border-radius:9px; background:#f2a93c26; color:var(--amber); display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:800; flex:0 0 auto; }
-  .nb-instr{ font-size:12.5px; font-weight:800; }
-  .nb-sub{ font-size:10.5px; color:var(--steel-dim); margin-top:1px; }
+  .route-card.off{ background:#050d16; border-color:#16283d; }
+  .rc-empty{ text-align:center; padding:10px 6px; }
+  .rc-empty-icon{ font-size:26px; margin-bottom:8px; }
+  .rc-empty-title{ font-size:14.5px; font-weight:800; margin-bottom:4px; }
+  .rc-empty-sub{ font-size:12px; color:var(--steel-dim); }
+  .rc-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  .rc-status{ font-size:11px; font-weight:800; color:var(--amber); text-transform:uppercase; letter-spacing:.04em; }
 
-  .pulse-dot{ animation:pulse 1.8s ease-out infinite; transform-origin:center; }
-  @media (prefers-reduced-motion: reduce){ .pulse-dot{ animation:none; } }
-  @keyframes pulse{
-    0%{ opacity:.55; transform:scale(1); }
-    70%{ opacity:0; transform:scale(2.6); }
-    100%{ opacity:0; transform:scale(2.6); }
+  .route-stops{ display:flex; flex-direction:column; }
+  .route-stop{ display:flex; align-items:flex-start; gap:12px; position:relative; padding-bottom:22px; }
+  .route-stop:last-child{ padding-bottom:0; }
+  .route-stop::after{ content:""; position:absolute; left:13px; top:28px; bottom:2px; width:2px; background:var(--field-border); }
+  .route-stop:last-child::after{ display:none; }
+  .route-stop .letter{
+    width:28px; height:28px; border-radius:50%; background:var(--field); border:1.6px solid var(--field-border);
+    display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12.5px; flex:0 0 auto; z-index:1;
   }
+  .route-stop.active .letter{ background:var(--amber); color:#2a1c05; border-color:var(--amber); }
+  .route-stop .addr{ font-size:13.5px; font-weight:700; padding-top:4px; }
+
+  .status-row{ display:flex; gap:10px; }
+  .status-btn{
+    flex:1; height:64px; border-radius:16px; border:1.6px solid var(--field-border); background:var(--field);
+    color:var(--steel); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; cursor:pointer;
+  }
+  .status-btn svg{ width:18px; height:18px; }
+  .status-btn span{ font-size:11px; font-weight:800; letter-spacing:.02em; }
+  .status-btn.start.active{ background:var(--green); color:#0b2a1a; border-color:var(--green); }
+  .status-btn.pause.active{ background:var(--amber); color:#2a1c05; border-color:var(--amber); }
+  .status-btn.stop.active{ background:var(--gray-off); color:#12202c; border-color:var(--gray-off); }
 
   /* ---- CHAT (Telegram-style contacts + thread) ---- */
   .chat-view{ display:none; flex-direction:column; height:100%; }
@@ -495,75 +487,32 @@
           </div>
         </div>
 
-        <!-- ===== HOME (full map) ===== -->
+        <!-- ===== HOME (route summary, no map) ===== -->
         <div class="screen" id="screen-home">
-          <div class="map-stage nav-mode" id="mapStage">
-            <svg class="map-svg" viewBox="0 0 300 520" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-              <rect width="300" height="520" fill="#0a2338"/>
-              <g stroke="#16324e" stroke-width="1.4">
-                <line x1="6" y1="70" x2="294" y2="70"/>
-                <line x1="6" y1="150" x2="294" y2="150"/>
-                <line x1="6" y1="230" x2="294" y2="230"/>
-                <line x1="6" y1="310" x2="294" y2="310"/>
-                <line x1="6" y1="390" x2="294" y2="390"/>
-                <line x1="6" y1="470" x2="294" y2="470"/>
-                <line x1="55" y1="10" x2="55" y2="510"/>
-                <line x1="130" y1="10" x2="130" y2="510"/>
-                <line x1="205" y1="10" x2="205" y2="510"/>
-                <line x1="260" y1="10" x2="260" y2="510"/>
-              </g>
-              <polyline points="48,478 108,382 92,300 188,262 168,150 246,96" fill="none" stroke="#a9bbcb" stroke-width="3" stroke-dasharray="1 8" stroke-linecap="round"/>
-
-              <!-- Point A: departure -->
-              <circle cx="48" cy="478" r="12" fill="#0e2c47" stroke="#f3f6f9" stroke-width="2.2"/>
-              <text x="48" y="483" text-anchor="middle" font-size="12" font-weight="800" font-family="-apple-system,Segoe UI,sans-serif" fill="#f3f6f9">A</text>
-
-              <!-- Point B: destination -->
-              <path d="M246 96c0-9-7-16-16-16s-16 7-16 16c0 12 16 25 16 25s16-13 16-25z" fill="#f2a93c"/>
-              <circle cx="230" cy="95" r="9" fill="#0a2338"/>
-              <text x="230" y="99" text-anchor="middle" font-size="11" font-weight="800" font-family="-apple-system,Segoe UI,sans-serif" fill="#f2a93c">B</text>
-
-              <!-- moving vehicle marker: travels A -> B -->
-              <g id="movingMarker">
-                <animateMotion dur="7s" repeatCount="indefinite" rotate="auto"
-                  path="M48,478 L108,382 L92,300 L188,262 L168,150 L246,96"/>
-                <circle class="pulse-dot" cx="0" cy="0" r="11" fill="#f2a93c" opacity=".55"/>
-                <circle cx="0" cy="0" r="7" fill="#f2a93c" stroke="#08192b" stroke-width="2.4"/>
-              </g>
-            </svg>
-
-            <div class="map-top">
-              <div class="chip-veh"><b>MAN TGX</b> · 01 D 789 AC</div>
+          <div class="scroll">
+            <div class="home-top">
+              <div class="greet">
+                <h2>Salom, Aziz!</h2>
+                <p>MAN TGX · 01 D 789 AC</p>
+              </div>
               <button type="button" class="bell" aria-label="Bildirishnomalar">🔔</button>
             </div>
 
-            <div class="nav-banner" id="navBanner">
-              <div class="nb-icon">↰</div>
-              <div class="nb-text">
-                <div class="nb-instr">300 m dan keyin chapga buriling</div>
-                <div class="nb-sub">Samarqand ko‘chasi</div>
-              </div>
-            </div>
+            <div class="route-card" id="routeCard"></div>
 
-            <div class="status-rail" role="group" aria-label="Smena holati">
-              <button type="button" class="rail-btn start active" onclick="applyDriverStatus('start')" aria-pressed="true">
+            <div class="status-row" role="group" aria-label="Smena holati">
+              <button type="button" class="status-btn start" onclick="applyDriverStatus('start')" aria-pressed="false">
                 <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 4l14 8-14 8V4z"/></svg>
                 <span>Old</span>
               </button>
-              <button type="button" class="rail-btn pause" onclick="openReasonSheet('pause')" aria-pressed="false">
+              <button type="button" class="status-btn pause" onclick="openReasonSheet('pause')" aria-pressed="false">
                 <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
                 <span>Pauza</span>
               </button>
-              <button type="button" class="rail-btn stop" onclick="openReasonSheet('stop')" aria-pressed="false">
+              <button type="button" class="status-btn stop active" onclick="openReasonSheet('stop')" aria-pressed="true">
                 <svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>
                 <span>Off</span>
               </button>
-            </div>
-
-            <div class="trip-float">
-              <div class="route">Toshkent → Samarqand</div>
-              <div class="sub" id="tripFloatSub">🧭 Navigatsiya faol · ETA 14:30</div>
-              <button type="button" onclick="showScreen('chat')">Reys tafsiloti</button>
             </div>
           </div>
 
@@ -803,7 +752,7 @@
       <div class="ap-body">
         <div class="ap-name">MAN TGX · 01 D 789 AC</div>
         <div class="ap-driver">Aziz Karimov</div>
-        <span class="ap-badge ok" id="apBadge"><span class="d"></span><span id="apBadgeText">Faol · yo‘lda</span></span>
+        <span class="ap-badge off" id="apBadge"><span class="d"></span><span id="apBadgeText">Oflayn</span></span>
       </div>
     </div>
     <p class="ap-note">O‘ngdagi status panelida <b>Old / Pauza / Off</b> tugmalaridan birini bossangiz — bu yerdagi holat ham darhol yangilanadi. Aynan shunday belgi rahbariyat Fleet-panelidagi mashina ro‘yxatida ko‘radi.</p>
@@ -845,6 +794,7 @@
     if(id === 'expenses') showExpenseView('list');
     if(id === 'chat') showChatView('contacts');
     if(id === 'orders') openOrdersScreen();
+    if(id === 'home') renderHomeRoute();
   }
 
   /* ===== AUTH ===== */
@@ -958,6 +908,7 @@
     if(hadNew){
       ORDERS.forEach(function(o){ if(o.status === 'new') o.status = 'queued'; });
       updateOrdersBadge();
+      renderHomeRoute();
     }
   }
 
@@ -1052,12 +1003,15 @@
   var selectedDeadlineText = null;
   var currentExtraEl = null;
 
+  var currentDriverStatus = 'stop';
+  var currentDriverReason = null;
+
   function applyDriverStatus(state, reason){
-    document.querySelectorAll('.rail-btn').forEach(function(b){
+    document.querySelectorAll('.status-btn').forEach(function(b){
       b.classList.remove('active');
       b.setAttribute('aria-pressed','false');
     });
-    var activeBtn = document.querySelector('.rail-btn.'+state);
+    var activeBtn = document.querySelector('.status-btn.'+state);
     activeBtn.classList.add('active');
     activeBtn.setAttribute('aria-pressed','true');
 
@@ -1066,12 +1020,53 @@
     badge.className = 'ap-badge ' + meta.badge;
     document.getElementById('apBadgeText').textContent = reason ? meta.text + ' · ' + reason : meta.text;
 
-    document.getElementById('mapStage').classList.toggle('nav-mode', state === 'start');
+    currentDriverStatus = state;
+    currentDriverReason = reason || null;
+    renderHomeRoute();
+  }
 
-    var sub = document.getElementById('tripFloatSub');
-    if(state === 'start') sub.textContent = '🧭 Navigatsiya faol · ETA 14:30';
-    else if(state === 'pause') sub.textContent = '⏸ Pauzada · ' + reason;
-    else sub.textContent = '⏹ To‘xtatildi · ' + reason;
+  function currentOrder(){
+    return ORDERS.find(function(o){ return o.status === 'queued'; }) || null;
+  }
+
+  function renderHomeRoute(){
+    var card = document.getElementById('routeCard');
+    if(!card) return;
+
+    if(currentDriverStatus === 'stop'){
+      card.className = 'route-card off';
+      card.innerHTML =
+        '<div class="rc-empty">' +
+          '<div class="rc-empty-icon">💤</div>' +
+          '<div class="rc-empty-title">Smena tugadi</div>' +
+          '<div class="rc-empty-sub">Ishni boshlash uchun pastdagi «Old» tugmasini bosing</div>' +
+        '</div>';
+      return;
+    }
+
+    var o = currentOrder();
+    card.className = 'route-card';
+
+    if(!o){
+      card.innerHTML =
+        '<div class="rc-empty">' +
+          '<div class="rc-empty-icon">⏳</div>' +
+          '<div class="rc-empty-title">Buyurtma kutilmoqda</div>' +
+          '<div class="rc-empty-sub">Yangi buyurtma kelganda shu yerda ko‘rinadi</div>' +
+        '</div>';
+      return;
+    }
+
+    var statusText = currentDriverStatus === 'pause'
+      ? 'Pauzada' + (currentDriverReason ? ' · ' + currentDriverReason : '')
+      : 'Yo‘lda';
+
+    card.innerHTML =
+      '<div class="rc-head"><span class="oc-number">' + o.number + '</span><span class="rc-status">' + statusText + '</span></div>' +
+      '<div class="route-stops">' +
+        '<div class="route-stop' + (currentDriverStatus === 'start' ? ' active' : '') + '"><span class="letter">A</span><span class="addr">' + o.from + '</span></div>' +
+        '<div class="route-stop"><span class="letter">B</span><span class="addr">' + o.to + '</span></div>' +
+      '</div>';
   }
 
   function openReasonSheet(state){
@@ -1454,11 +1449,7 @@
   }
 
   updateOrdersBadge();
-
-  if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){
-    var mapSvg = document.querySelector('.map-svg');
-    if(mapSvg && mapSvg.pauseAnimations) mapSvg.pauseAnimations();
-  }
+  renderHomeRoute();
 </script>
 </body>
 </html>
