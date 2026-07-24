@@ -514,6 +514,7 @@
                 <div class="row">🏁 <b id="odTo">—</b></div>
                 <div class="row">↩ <b id="odReturn">—</b></div>
                 <div class="row">📅 <b id="odDate">—</b></div>
+                <div class="row">⏱ <b id="odEta">—</b></div>
               </div>
               <p class="section-label" style="margin-top:18px">Yuk haqida</p>
               <div class="order-cargo-card">
@@ -663,6 +664,8 @@
       <input type="datetime-local" id="orderStartInput" class="ap-input">
       <label class="field-label">Tugash sanasi</label>
       <input type="datetime-local" id="orderEndInput" class="ap-input">
+      <label class="field-label">Taxminiy vaqt (admin tomonidan)</label>
+      <input type="text" id="orderEtaInput" class="ap-input" value="≈ 3 soat 30 daqiqa" placeholder="Masalan: 3 soat 30 daqiqa">
       <label class="field-label">Yuk nomi</label>
       <input type="text" id="orderCargoInput" class="ap-input" value="Sement" placeholder="Masalan: Qurilish g‘ishti">
       <label class="field-label">To‘liq tavsif</label>
@@ -733,9 +736,9 @@
   }
 
   var ORDERS = [
-    { id:1, number:'#1001', from:'Toshkent, Sergeli tumani', to:'Andijon shahri', status:'done', startAt:'21-iyul, 06:20', endAt:'21-iyul, 09:45',
+    { id:1, number:'#1001', from:'Toshkent, Sergeli tumani', to:'Andijon shahri', status:'done', startAt:'21-iyul, 06:20', endAt:'21-iyul, 09:45', eta:'≈ 3 soat 25 daqiqa',
       cargo:'Qurilish g‘ishti', desc:'1200 dona silikat g‘isht, paletlarda joylashtirilgan. Tushirish uchun forklift kerak.' },
-    { id:2, number:'#1002', from:'AS Sherzod aka S-8', to:'Buxoro, qurilish bozori', status:'queued', startAt:'21-iyul, 16:00', endAt:'21-iyul, 19:30',
+    { id:2, number:'#1002', from:'AS Sherzod aka S-8', to:'Buxoro, qurilish bozori', status:'queued', startAt:'21-iyul, 16:00', endAt:'21-iyul, 19:30', eta:'≈ 3 soat 30 daqiqa',
       cargo:'G‘isht · 6 t', desc:'Qurilish g‘ishti, quruq holatda. Yomg‘irdan yopiq brezent bilan tashish tavsiya etiladi.' }
   ];
   var orderIdCounter = 3;
@@ -768,6 +771,7 @@
           '<div class="row">📍 <b>' + o.from + '</b></div>' +
           '<div class="row">🏁 <b>' + o.to + '</b></div>' +
           '<div class="row">📅 <b>' + o.startAt + ' — ' + o.endAt + '</b></div>' +
+          (o.eta ? '<div class="row">⏱ <b>' + o.eta + '</b></div>' : '') +
         '</div>';
       card.onclick = function(){ openOrderDetail(o.id); };
       list.appendChild(card);
@@ -791,6 +795,7 @@
     document.getElementById('odTo').textContent = o.to;
     document.getElementById('odReturn').textContent = 'Qaytish: ' + o.from;
     document.getElementById('odDate').textContent = o.startAt + ' — ' + o.endAt;
+    document.getElementById('odEta').textContent = o.eta || 'Admin tomonidan ko‘rsatilmagan';
     document.getElementById('odCargoName').textContent = o.cargo || 'Yuk turi ko‘rsatilmagan';
     document.getElementById('odCargoDesc').textContent = o.desc || 'Qo‘shimcha tavsif kiritilmagan.';
     showOrdersView('detail');
@@ -836,6 +841,7 @@
     var to = document.getElementById('orderToInput').value.trim() || 'Buxoro';
     var startAt = formatOrderDate(document.getElementById('orderStartInput').value) || 'Bugun, 16:00';
     var endAt = formatOrderDate(document.getElementById('orderEndInput').value) || 'Bugun, 20:00';
+    var eta = document.getElementById('orderEtaInput').value.trim() || 'Admin tomonidan ko‘rsatilmagan';
     var cargo = document.getElementById('orderCargoInput').value.trim() || 'Yuk turi ko‘rsatilmagan';
     var desc = document.getElementById('orderDescInput').value.trim() || 'Qo‘shimcha tavsif kiritilmagan.';
     var id = orderIdCounter++;
@@ -847,6 +853,7 @@
       status: 'new',
       startAt: startAt,
       endAt: endAt,
+      eta: eta,
       cargo: cargo,
       desc: desc
     });
